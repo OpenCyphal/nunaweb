@@ -1,0 +1,3 @@
+# Flask for serving (obviously) + CORS api
+flask
+cors
