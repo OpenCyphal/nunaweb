@@ -34,7 +34,7 @@ def generate_dsdl(self,
                           meta={
                               "current": c+1,
                               "total": len(namespaces),
-                              "status": "Generating " + namespace.split("/")[-1]
+                              "status": "Generating namespace: " + namespace.split("/")[-1]
                           })
 
         extra_includes = namespaces
