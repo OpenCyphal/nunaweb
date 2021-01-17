@@ -1,39 +1,18 @@
 <!-- TODO: Break this thing up! It's massive. -->
 <template>
   <div class="container d-flex flex-column align-items-center text-center p-5">
-    <form style="max-width: 960px">
+    <form style="max-width: 960px" v-on:submit="handleSubmit" enctype="multipart/form-data">
       <Logo style="margin-bottom: 3rem" />
       <h1 class="title">
         nunaweb
       </h1>
       <h2 class="lead">
-        generate DSDL code from the web
+        transpile DSDL code from the web
       </h2>
-      <div class="d-flex mt-3 align-items-center mb-3">
-        <input
-          type="text"
-          class="form-control mt-2"
-          placeholder="Github link to namespace repository"
-          v-model="namespaceRepo"
-          :disabled="isFile"
-        />
-        <p class="px-2 mt-2 mb-0">or</p>
-        <label
-          class="btn btn-primary text-nowrap mt-2"
-          v-if="!isFile"
-        >
-          Upload .zip
-          <input
-            type="file"
-            accept="application/zip"
-            hidden
-            v-on:change="handleFileUpload"
-          />
-        </label>
-        <button v-else class="btn btn-secondary text-nowrap mt-2">
-          Clear
-        </button>
-      </div>
+      <ArchiveSelector
+        v-on:ns-namechange="handleRepoURLChange"
+        v-on:file-change="handleFileSelect"
+      />
       <div class="d-flex">
         <select v-model="selectedLang" class="form-select me-2" aria-label="Target Language">
           <option
@@ -72,7 +51,47 @@
           </p>
         </div>
         <!--pre>{{ command }}</pre -->
-        <input type="submit" class="btn btn-primary mt-4" value="Submit" />
+        <div class="d-flex align-items-center mt-4 flex-wrap">
+          <input
+            type="submit"
+            class="btn btn-primary me-3 mb-4"
+            value="Submit"
+          />
+          <div
+            class="d-flex flex-nowrap align-items-center mb-4"
+            v-if="loadingStatus !== ''"
+          >
+            <b-icon
+              v-if="loadingStatus === 'SUCCESS'"
+              icon="check-circle-fill"
+              variant="success"
+              style="width: 2rem; height: 2rem;"
+              class="me-2"
+            />
+            <b-icon
+              v-else-if="loadingStatus === 'FAILURE'"
+              variant="danger"
+              icon="exclamation-circle-fill"
+              style="width: 2rem; height: 2rem;"
+              class="me-2"
+            />
+            <b-spinner
+              v-else
+              style="width: 2rem; height: 2rem;"
+              variant="success"
+              class="me-2"
+            />
+            <div class="flex-column">
+              <label>{{ loadingMessage }}</label>
+              <p class="small mb-0" v-if="loadingStatus === 'SUCCESS'">
+              Download here: <a :href="resultURL">{{ resultURL }}</a>
+              </p>
+              <p v-else class="small mb-0">
+                This process can take up to several minutes. Leave the page open!
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </form>
   </div>
@@ -129,8 +148,13 @@ export default {
     ]
 
     return {
-      namespaceRepo: '',
-      isFile: false,
+      loadingStatus: '',
+      loadingMessage: '',
+      loadingURL: '',
+      resultURL: '',
+      loadingTimeout: null,
+      nsRepo: '',
+      nsFile: null,
       selectedLang: 'c',
       selectedEndian: 'little',
       endians,
@@ -154,10 +178,61 @@ export default {
     }
   },
   methods: {
-    handleFileUpload(event) {
-      console.log(event);
-      this.isFile = true;
-      this.namespaceRepo = event.target.files[0].name;
+    handleFileSelect(file) {
+      // TODO: Perhaps handle this cleaner
+      this.nsFile = file;
+    },
+    handleRepoURLChange(url) {
+      this.nsRepo = url;
+    },
+    handleSubmit(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Append data
+      const formData = new FormData();
+      if (this.nsFile) {
+        console.log(this.nsFile);
+        formData.append('archive', this.nsFile);
+      } else {
+        formData.append('archive_url', this.nsRepo + '/archive/master.zip');
+      }
+      formData.append('target_lang', this.selectedLang);
+      formData.append('target_endian', this.selectedEndian);
+      formData.append('flags', this.flags.filter(flag => flag.value).map(flag => flag.flag));
+
+      this.loading = true;
+      this.loadingMessage = 'Uploading...';
+
+      console.log(formData);
+      fetch('http://localhost:5000/upload', {
+        method: 'POST',
+        body: formData
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.log('Fetch error');
+          }
+          return res.json();
+        })
+        .then((data) => {
+          this.loadingURL = data.task_url;
+          this.loadingTimeout = setInterval(this.handleProcessing, 500);
+        })
+        .catch(err => console.log(err));
+    },
+    handleProcessing() {
+      fetch('http://localhost:5000' + this.loadingURL)
+        .then(res => res.json())
+        .then((data) => {
+          this.loadingStatus = data.state;
+          this.loadingMessage = data.status;
+          if (data.state === 'SUCCESS') {
+            this.resultURL = data.result;
+            clearInterval(this.loadingTimeout);
+          }
+        })
+        .catch(err => console.log(err));
     }
   }
 }

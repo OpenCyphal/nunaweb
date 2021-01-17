@@ -4,6 +4,8 @@
 
 ### Flask ###
 instance/*
+static/
+uploads/
 !instance/.gitignore
 .webassets-cache
 
@@ -22,7 +24,6 @@ build/
 develop-eggs/
 dist/
 downloads/
-uploads/
 eggs/
 .eggs/
 lib/
