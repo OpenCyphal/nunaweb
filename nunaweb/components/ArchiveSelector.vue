@@ -7,11 +7,12 @@
       name="archive_url"
       v-model="namespaceRepo"
       v-on:change="$emit('ns-namechange', $event.target.value)"
-      :disabled="isFile"
+      :disabled="isFile || disabled"
       />
     <p class="px-2 mt-2 mb-0">or</p>
     <label
       class="btn btn-primary text-nowrap mt-2"
+      v-bind:class="{ disabled: disabled }"
       v-if="!isFile"
     >
       Upload .zip
@@ -45,6 +46,9 @@ export default {
       namespaceRepo: '',
       isFile: false
     };
+  },
+  props: {
+    disabled: Boolean
   },
   methods: {
     handleFileSelect(e) {

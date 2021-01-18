@@ -12,9 +12,15 @@
       <ArchiveSelector
         v-on:ns-namechange="handleRepoURLChange"
         v-on:file-change="handleFileSelect"
+        :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
       />
       <div class="d-flex">
-        <select v-model="selectedLang" class="form-select me-2" aria-label="Target Language">
+        <select
+          :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+          v-model="selectedLang"
+          class="form-select me-2"
+          aria-label="Target Language"
+        >
           <option
             v-for="lang in languages"
             :key="lang.value"
@@ -24,7 +30,12 @@
           {{ lang.name }}
           </option>
         </select>
-        <select v-model="selectedEndian" class="form-select" aria-label="Select Endianness">
+        <select
+          :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+          v-model="selectedEndian"
+          class="form-select me-2"
+          aria-label="Select Endianness"
+        >
           <option
             v-for="endian in endians"
             :key="endian.value"
@@ -37,6 +48,7 @@
       <div class="align-items-start mt-3" style="text-align: left !important">
         <div v-for="flag in flags" :key="flag.flag" class="form-check">
           <input
+            :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
             class="form-check-input"
             type="checkbox"
             v-model="flag.value"
@@ -52,7 +64,16 @@
         </div>
         <!--pre>{{ command }}</pre -->
         <div class="d-flex align-items-center mt-4 flex-wrap">
+          <button
+            v-if="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+            type="button"
+            v-on:click="handleCancel"
+            class="btn btn-secondary me-3 mb-4"
+          >
+            Cancel
+          </button>
           <input
+            v-else
             type="submit"
             class="btn btn-primary me-3 mb-4"
             value="Submit"
@@ -69,7 +90,7 @@
               class="me-2"
             />
             <b-icon
-              v-else-if="loadingStatus === 'FAILURE'"
+              v-else-if="loadingStatus === 'FAILURE' || loadingStatus === 'CANCELED'"
               variant="danger"
               icon="exclamation-circle-fill"
               style="width: 2rem; height: 2rem;"
@@ -85,6 +106,13 @@
               <label>{{ loadingMessage }}</label>
               <p class="small mb-0" v-if="loadingStatus === 'SUCCESS'">
               Download here: <a :href="resultURL">{{ resultURL }}</a>
+              </p>
+              <p class="small mb-0" v-else-if="loadingStatus === 'FAILURE'">
+              Generation failed.
+              </p>
+              <p class="small mb-0" v-else-if="loadingStatus === 'CANCELED'">
+              Generation was canceled. You can submit another.
+              <a href="#" v-on:click="loadingStatus = ''">Hide</a>
               </p>
               <p v-else class="small mb-0">
                 This process can take up to several minutes. Leave the page open!
@@ -177,6 +205,14 @@ export default {
       return command;
     }
   },
+  mounted() {
+    console.log(this.$route.path)
+    if (this.$route.path !== '/') {
+      console.log(this.$route.path)
+      this.loadingURL = this.$route.path;
+      this.loadingTimeout = setInterval(this.handleProcessing, 500);
+    }
+  },
   methods: {
     handleFileSelect(file) {
       // TODO: Perhaps handle this cleaner
@@ -205,7 +241,7 @@ export default {
       this.loadingMessage = 'Uploading...';
 
       console.log(formData);
-      fetch('http://localhost:5000/upload', {
+      fetch(process.env.apiURL + '/upload', {
         method: 'POST',
         body: formData
       })
@@ -217,18 +253,38 @@ export default {
         })
         .then((data) => {
           this.loadingURL = data.task_url;
-          this.loadingTimeout = setInterval(this.handleProcessing, 500);
+          // We push to a status/:statusID route, which
+          // enables saving the output in the user's history
+          // This allows the user to come back to the status page
+          // if they accidentally leave
+          // The status page triggers the progress querying
+          this.$router.push({ path: this.loadingURL });
         })
         .catch(err => console.log(err));
     },
     handleProcessing() {
-      fetch('http://localhost:5000' + this.loadingURL)
+      fetch(process.env.apiURL + this.loadingURL)
         .then(res => res.json())
         .then((data) => {
           this.loadingStatus = data.state;
           this.loadingMessage = data.status;
           if (data.state === 'SUCCESS') {
             this.resultURL = data.result;
+            clearInterval(this.loadingTimeout);
+          } else if (data.state === 'CANCELED') {
+            clearInterval(this.loadingTimeout);
+          }
+        })
+        .catch(err => console.log(err));
+    },
+    handleCancel() {
+      fetch(process.env.apiURL + this.loadingURL + '/cancel')
+        .then((res) => {
+          if (!res.ok) {
+            this.loadingStatus = 'CANCELED';
+            this.loadingMessage = '';
+            this.loadingURL = '';
+            this.resultURL = '';
             clearInterval(this.loadingTimeout);
           }
         })

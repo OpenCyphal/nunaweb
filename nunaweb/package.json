@@ -12,6 +12,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@nuxtjs/router": "^1.5.0",
     "bootstrap": "^5.0.0-beta1",
     "bootstrap-vue": "^2.17.3",
     "core-js": "^3.6.5",

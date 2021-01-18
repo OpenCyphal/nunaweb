@@ -3,6 +3,7 @@ from nunaserver.utils.archive_utils import fetch_root_namespace_dirs, allowed_fi
 from nunaserver.generator import generate_dsdl
 from werkzeug.utils import secure_filename
 from pathlib import Path
+from celery.exceptions import TaskRevokedError
 import tempfile
 import flask
 import os
@@ -58,31 +59,45 @@ def upload():
 
 @api.route('/status/<task_id>')
 def taskstatus(task_id):
+    try:
+        task = generate_dsdl.AsyncResult(task_id)
+        if task.state == 'PENDING':
+            # job did not start yet
+            response = {
+                'state': task.state,
+                'current': 0,
+                'total': 1,
+                'status': 'Pending...'
+            }
+        elif task.state != 'FAILURE':
+            response = {
+                'state': task.state,
+                'current': task.info.get('current', 0),
+                'total': task.info.get('total', 1),
+                'status': task.info.get('status', ''),
+            }
+            if 'result' in task.info:
+                response['result'] = task.info['result']
+        else:
+            # something went wrong in the background job
+            response = {
+                'state': task.state,
+                'current': 1,
+                'total': 1,
+                'status': str(task.info),  # this is the exception raised
+            }
+        return flask.jsonify(response)
+    except AttributeError:
+        return flask.jsonify({
+            'state': 'CANCELED',
+            'current': '0',
+            'total': '1',
+            'status': 'Task was canceled.'
+        })
+
+@api.route('/status/<task_id>/cancel')
+def taskcancel(task_id):
     task = generate_dsdl.AsyncResult(task_id)
-    if task.state == 'PENDING':
-        # job did not start yet
-        response = {
-            'state': task.state,
-            'current': 0,
-            'total': 1,
-            'status': 'Pending...'
-        }
-    elif task.state != 'FAILURE':
-        response = {
-            'state': task.state,
-            'current': task.info.get('current', 0),
-            'total': task.info.get('total', 1),
-            'status': task.info.get('status', ''),
-        }
-        print(task.info)
-        if 'result' in task.info:
-            response['result'] = task.info['result']
-    else:
-        # something went wrong in the background job
-        response = {
-            'state': task.state,
-            'current': 1,
-            'total': 1,
-            'status': str(task.info),  # this is the exception raised
-        }
-    return flask.jsonify(response)
+    task.revoke(terminate=True)
+
+    return flask.jsonify({"response": "OK"}), 200
