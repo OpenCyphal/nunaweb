@@ -1,3 +1,11 @@
 # Flask for serving (obviously) + CORS api
 flask
-cors
+flask-cors
+
+# Celery
+celery
+redis
+celery[redis]
+
+# Nunavut
+nunavut
