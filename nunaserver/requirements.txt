@@ -2,10 +2,13 @@
 flask
 flask-cors
 
+# Requests for downloading external repos
+requests
+
 # Celery
 celery
 redis
-celery[redis]
 
 # Nunavut
 nunavut
+pydsdl

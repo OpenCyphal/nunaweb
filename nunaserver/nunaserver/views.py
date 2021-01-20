@@ -1,3 +1,6 @@
+"""
+API endpoints for nunaserver.
+"""
 from nunaserver import settings
 from nunaserver.utils.archive_utils import fetch_root_namespace_dirs, allowed_file
 from nunaserver.generator import generate_dsdl

@@ -1,3 +1,6 @@
+"""
+Main Flask server configuration and startup.
+"""
 from nunaserver import settings
 from nunaserver.views import api
 from nunaserver.tasks import celery, make_celery, init_celery
