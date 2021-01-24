@@ -1,0 +1,36 @@
+version: "3"
+services:
+  celery:
+    image: python:latest
+    volumes:
+      - ./:/nunaserver
+      - /tmp:/tmp
+    network_mode: host
+    environment:
+      - CELERY_BROKER_URL=redis://localhost
+      - CELERY_RESULT_BACKEND=redis://localhost
+    command: "bash -c 'cd /nunaserver && pip3 install -r requirements.txt && celery -A nunaserver.generator worker --loglevel=info'"
+  nunaserver:
+    image: python:latest
+    volumes:
+      - ./:/nunaserver
+      - /tmp:/tmp
+    network_mode: host
+    environment:
+      - NS_UPLOAD_FOLDER=/nunaserver/uploads
+      - NS_REDIS_RESULT=redis://localhost
+      - NS_REDIS_BROKER=redis://localhost:6379/0
+      - NS_WORK_FOLDER=/nunaserver/uploads
+      - NS_STATIC_FOLDER=/nunaserver/static
+      - NS_STATIC_SERVER_URL=http://localhost:8000 # Set to URL
+    command: "bash -c 'cd /nunaserver && pip3 install -r requirements.txt && python3 -m nunaserver'"
+  fileserver:
+    image: python:latest
+    restart: always
+    volumes:
+      - ./:/nunaserver
+    network_mode: host
+    command: "bash -c 'cd /nunaserver/static && sleep 30 && python3 -m http.server'"
+  redis:
+    image: redis:latest
+    network_mode: host
