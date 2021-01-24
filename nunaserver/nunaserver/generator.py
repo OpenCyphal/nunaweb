@@ -53,7 +53,13 @@ def generate_dsdl(self,
             text = str(e).replace(arch_dir, "")
             raise RuntimeError(f"{text}")
 
-        # Select target language
+        # Select target language and configure context
+        language_options = {}
+        language_options['target_endianness'] = target_endian
+        language_options['omit_float_serialization_support'] = \
+            "--omit-float-serialization-support" in flags
+        language_options['enable_serialization_asserts'] = \
+            "--enable-serialization-asserts" in flags
         lang_context = LanguageContext(target_lang)
 
         # Build namespace tree
