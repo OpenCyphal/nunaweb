@@ -18,9 +18,11 @@ from nunaserver.settings import ALLOWED_EXTENSIONS
 
 logger = logging.getLogger(__name__)
 
+
 def unzip_to_directory(file_path, arch_dir):
     with zipfile.ZipFile(file_path) as zf:
         zf.extractall(arch_dir)
+
 
 def fetch_remote_namespace(url: str, arch_dir: Path):
     if not (url.startswith("http://") or url.startswith("https://")):
@@ -38,7 +40,9 @@ def fetch_remote_namespace(url: str, arch_dir: Path):
         raise RuntimeError("Only zip archives and Github are supported.")
 
     if res.status_code != http.HTTPStatus.OK:
-        raise RuntimeError(f"Could not download the archive; HTTP error {res.status_code}")
+        raise RuntimeError(
+            f"Could not download the archive; HTTP error {res.status_code}"
+        )
 
     fd, file_path = tempfile.mkstemp("dsdlarchive")
 
@@ -49,12 +53,16 @@ def fetch_remote_namespace(url: str, arch_dir: Path):
     unzip_to_directory(file_path, arch_dir)
     os.unlink(file_path)
 
+
 def zipdir(path, ziph):
     # ziph is zipfile handle
     for root, dirs, files in os.walk(path):
         for file in files:
-            ziph.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))
+            ziph.write(
+                os.path.join(root, file),
+                os.path.relpath(os.path.join(root, file), os.path.join(path, "..")),
+            )
+
 
 def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS

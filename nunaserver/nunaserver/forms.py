@@ -3,12 +3,22 @@ Flask-WTF Forms for API form validation.
 Used to parse and validate request data on API endpoints (e.g. /upload).
 """
 
+# pylint: disable=too-few-public-methods
 class ValidationError(Exception):
+    """
+    Raised when form fails to validate.
+    """
+
     def __init__(self, errors, *args, **kwargs):
         super().__init__(self, *args, **kwargs)
         self.errors = errors
 
+
 class UploadForm:
+    """
+    Upload form for parsing namespace uploads.
+    """
+
     def __init__(self, form, files):
         errors = {}
 

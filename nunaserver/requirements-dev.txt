@@ -1,0 +1,4 @@
+# Nox testing
+nox
+pytest
+pytest-celery
