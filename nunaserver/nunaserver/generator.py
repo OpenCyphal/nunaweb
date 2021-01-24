@@ -87,5 +87,3 @@ def generate_dsdl(self,
         "status": "Complete!",
         "result": f"{settings.OUT_SERVER_URL}/{zipfile_name}"
     }
-
-def gather_namespaces(urls, files):
