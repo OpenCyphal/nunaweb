@@ -23,7 +23,9 @@ from pathlib import Path
 def generate_dsdl(self,
                   arch_dir: str,
                   namespaces: List[str],
-                  lang_target: str,
+                  target_lang: str,
+                  target_endian: str,
+                  flags: List[str],
                   out_dir: str):
     """
     Generate (transpile) the DSDL code.
@@ -52,7 +54,7 @@ def generate_dsdl(self,
             raise RuntimeError(f"{text}")
 
         # Select target language
-        lang_context = LanguageContext(lang_target)
+        lang_context = LanguageContext(target_lang)
 
         # Build namespace tree
         root_namespace = build_namespace_tree(compound_types,
@@ -79,3 +81,5 @@ def generate_dsdl(self,
         "status": "Complete!",
         "result": f"{settings.OUT_SERVER_URL}/{zipfile_name}"
     }
+
+def gather_namespaces(urls, files):

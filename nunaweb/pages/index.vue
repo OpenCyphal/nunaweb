@@ -63,7 +63,6 @@
             {{ flag.description }}
           </p>
         </div>
-        <!--pre>{{ command }}</pre -->
         <a href="#" v-on:click="additionalReposOpen = !additionalReposOpen">
           {{ additionalReposOpen ? "-" : "+" }} Additional namespace repositories
         </a>
@@ -82,6 +81,8 @@
             Add Repo
           </button>
         </b-collapse>
+        <p class="mt-2 mb-0" v-if="command">Generation command:</p>
+        <pre style="white-space: pre-wrap" v-if="command">{{ command }}</pre>
         <div class="d-flex align-items-center mt-4 flex-wrap">
           <button
             v-if="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
@@ -161,6 +162,7 @@ export default {
       loadingURL: '',
       resultURL: '',
       additionalReposOpen: false,
+      command: '',
       loadingTimeout: null,
       nsFiles: {
         '0': null,
@@ -177,29 +179,8 @@ export default {
   },
 
   computed: {
-    // TODO: At the moment, I couldn't figure out a good performant way to
-    // get enough information on the namespaces within the repo/archive to
-    // display exactly what command to run
-    // So for now we'll keep that part backend-only and we can potentially figure
-    // it out later.
-    command() {
-      const flags = this.flags.filter(flag => flag.value).map(flag => flag.flag);
-      let command = `nnvg --target-language ${this.selectedLang} `;
-      command += this.selectedEndian !== 'any'
-        ? `--target-endianness=${this.selectedEndian} ` : '';
-      command += flags.join(' ');
-      return command;
-    },
     nsFilesKeys() {
       return Object.keys(this.nsFiles).filter(key => key !== '0');
-    }
-  },
-  mounted() {
-    console.log(this.$route.path)
-    if (this.$route.path !== '/') {
-      console.log(this.$route.path)
-      this.loadingURL = this.$route.path;
-      this.loadingTimeout = setInterval(this.handleProcessing, 500);
     }
   },
   methods: {
@@ -245,13 +226,24 @@ export default {
         const data = await api.upload(formData);
         console.log(data);
 
+        this.command = data.command;
         this.loadingURL = data.task_url;
         // We push to a status/:statusID route, which
         // enables saving the output in the user's history
         // This allows the user to come back to the status page
         // if they accidentally leave
-        // The status page triggers the progress querying
-        this.$router.push({ path: this.loadingURL });
+        // history.pushState is a little jank as it doesn't communicate
+        // with the nuxt router, but we don't want it to reload
+        // TODO: Cleaner way to do this?
+        history.pushState(
+          { path: this.loadingURL },
+          null,
+          this.loadingURL
+        );
+
+        // Kick off URL loading
+        this.loadingURL = window.location.pathname;
+        this.loadingTimeout = setInterval(this.handleProcessing, 500);
       } catch (e) {
         // Error handling
         console.log(e);
@@ -259,7 +251,7 @@ export default {
     },
     async handleProcessing() {
       try {
-        const data = await api.getStatus(this.$route.params.statusID);
+        const data = await api.getStatus(window.location.pathname.split('/')[2]);
         this.loadingStatus = data.state;
         this.loadingMessage = data.status;
 

@@ -45,7 +45,10 @@ def upload():
         print("valid")
         return flask.jsonify(e.errors)
 
-    # TODO: Move this out to a celery task
+    # TODO: Move this out to a celery task, maybe?
+    # Might be difficult to move files out (only way is encode to b64 and
+    # yeet it across redis = might run into RAM issues)
+    # Could just move URL fetching
     print(form.archive_files, form.archive_urls)
     for file in form.archive_files:
         # Create temp file for zip archive
@@ -66,16 +69,36 @@ def upload():
     for path in inner:
         ns_dirs.extend([d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")])
 
-    print(ns_dirs)
-
     out_dir = Path(tempfile.mkdtemp(prefix="nunavut-out"))
+
+    # Generate nnvg command
+    print(ns_dirs)
+    command = ""
+    for c, ns_dir in enumerate(ns_dirs):
+        if c > 0:
+            command += "\n"
+        command += f"nnvg "
+        command += f"--target-language {form.target_lang} "
+        if form.target_endian != "any":
+            command += f"--target-endianness {form.target_endian} "
+        command += f"{' '.join(form.flags)}"
+        command += f" dsdl_src{str(ns_dir).replace(str(arch_dir), '')}"
+        for lookup_dir in ns_dirs:
+            if lookup_dir != ns_dir:
+                command += f" --lookup dsdl_src{str(lookup_dir).replace(str(arch_dir), '')}"
+
+    print(str(command))
 
     task = generate_dsdl.delay(str(arch_dir),
                                list(map(str, ns_dirs)),
-                               flask.request.form["target_lang"],
+                               form.target_lang,
+                               form.target_endian,
+                               form.flags,
                                str(out_dir))
 
+
     return flask.jsonify({
+        "command": command,
         "task_url": flask.url_for("api.taskstatus",
                                   task_id=task.id)}), 202
 
