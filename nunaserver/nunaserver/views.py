@@ -2,8 +2,12 @@
 API endpoints for nunaserver.
 """
 from nunaserver import settings
-from nunaserver.utils.archive_utils import fetch_root_namespace_dirs, allowed_file
+from nunaserver.utils.archive_utils import \
+    fetch_remote_namespace, \
+    unzip_to_directory, \
+    allowed_file
 from nunaserver.generator import generate_dsdl
+from nunaserver.forms import UploadForm, ValidationError
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from celery.exceptions import TaskRevokedError
@@ -33,22 +37,31 @@ def upload():
     arch_dir = Path(tempfile.mkdtemp(
         prefix="pyuavcan-cli-dsdl"))
 
-    # TODO: This error handling is really gross.
-    if flask.request.form.get("archive_url"):
-        if flask.request.form["archive_url"] == "/archive/master.zip":
-            return flask.Response("No archive URL given.", status=400)
-        ns_dirs = fetch_root_namespace_dirs(flask.request.form["archive_url"], arch_dir)
-    else:
-        file = flask.request.files["archive"]
-        if file.filename == '':
-            return flask.Response("No repository archive given.", status=400)
+    try:
+        print(flask.request.form)
+        form = UploadForm(flask.request.form)
+    except ValidationError as e:
+        print("valid")
+        return flask.jsonify(e.errors)
 
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(arch_dir / "dsdl.zip")
-            ns_dirs = fetch_root_namespace_dirs(str(arch_dir / "dsdl.zip"), arch_dir)
-        else:
-            return flask.Response("File type not allowed.", status=400)
+    # TODO: Move this out to a celery task
+    for file in form.archive_files:
+        # Create temp file for zip archive
+        fd, file_path = tempfile.mkstemp(".zip", "dsdl")
+        fd.close()
+
+        # Save and unzip
+        file.save(file_path)
+        unzip_to_directory(file_path, arch_dir)
+
+        # Delete zip file
+        os.unlink(file_path)
+    for url in form.archive_urls:
+        fetch_remote_namespace(url, arch_dir)
+
+    (inner,) = [d for d in Path(arch_dir).iterdir() if d.is_dir()]  # Strip the outer layer, we don't need it
+    assert isinstance(inner, Path)
+    ns_dirs = [d for d in inner.iterdir() if d.is_dir() and not d.name.startswith(".")]
 
     out_dir = Path(tempfile.mkdtemp(prefix="nunavut-out"))
 

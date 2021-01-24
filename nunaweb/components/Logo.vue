@@ -1,5 +1,5 @@
 <template>
-    <img src="~/assets/UAVCAN_logo.png" class="NuxtLogo">
+    <img src="~/static/UAVCAN_logo.png" class="NuxtLogo">
 </template>
 
 <style>

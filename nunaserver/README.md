@@ -19,7 +19,8 @@ Required tools for the recommended setup process:
 - Python 3.7+ (and pip)
 - Docker
 
-1. Install requirements with `pip3 install -r requirements.txt`
+1. install requirements with `pip3 install -r requirements.txt`
+1a. install dev requirements with `pip3 install -r requirements-dev.txt`
 2. Run the flask dev server with `python3 -m nunaserver`
 3. Run the Celery worker with `celery -A nunaserver.generator worker --loglevel=info`
 4. Run a basic static file server with `cd static && python3 -m http.server`

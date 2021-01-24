@@ -30,4 +30,4 @@ OUT_SERVER_URL = os.environ.get("NS_STATIC_SERVER_URL") or "http://localhost:800
 # ^^ Set this to production static file server URL
 
 # Misc.
-LOG_LEVEL = logging.WARNING
+LOG_LEVEL = logging.INFO

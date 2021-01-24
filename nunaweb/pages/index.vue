@@ -10,9 +10,10 @@
         transpile DSDL code from the web
       </h2>
       <ArchiveSelector
-        v-on:ns-namechange="handleRepoURLChange"
-        v-on:file-change="handleFileSelect"
+        id="0"
         :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+        v-on:repo-change="handleRepoChange"
+        class="mt-3 mb-3"
       />
       <div class="d-flex">
         <select
@@ -33,7 +34,7 @@
         <select
           :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
           v-model="selectedEndian"
-          class="form-select me-2"
+          class="form-select"
           aria-label="Select Endianness"
         >
           <option
@@ -63,6 +64,24 @@
           </p>
         </div>
         <!--pre>{{ command }}</pre -->
+        <a href="#" v-on:click="additionalReposOpen = !additionalReposOpen">
+          {{ additionalReposOpen ? "-" : "+" }} Additional namespace repositories
+        </a>
+        <b-collapse v-model="additionalReposOpen" class="mb-5">
+          <ArchiveSelector
+            v-for="n in nsFilesKeys"
+            :key="n"
+            :id="n"
+            :initialValue="nsFiles[n]"
+            v-on:repo-change="handleRepoChange"
+            v-on:repo-remove="handleRepoRemove"
+            class="my-1"
+            removable
+          />
+          <button class="btn btn-primary mt-2" type="button" v-on:click="handleRepoAdd">
+            Add Repo
+          </button>
+        </b-collapse>
         <div class="d-flex align-items-center mt-4 flex-wrap">
           <button
             v-if="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
@@ -126,70 +145,32 @@
 </template>
 
 <script>
+import * as dataOptions from '~/services/dataOptions.js';
+import * as api from '~/services/api.js';
+
 export default {
   data() {
-    const endians = [
-      {
-        name: 'Little Endian',
-        value: 'little'
-      },
-      {
-        name: 'Any Endian',
-        value: 'any'
-      },
-      {
-        name: 'Big Endian',
-        value: 'big'
-      }
-    ];
-
-    const languages = [
-      {
-        name: 'C',
-        value: 'c'
-      },
-      {
-        name: 'C++ (coming soon)',
-        value: 'c++',
-        disabled: true
-      },
-      {
-        name: 'Python (coming soon)',
-        value: 'python',
-        disabled: true
-      }
-    ];
-
-    const flags = [
-      {
-        name: 'Enable serialization asserts',
-        description: 'Instruct support header generators to generate language-specific assert statements as part of serialization routines. By default the serialization logic generated may make assumptions based on documented requirements for calling logic that could expose a system to undefined behaviour. The alternative, for langauges that do not support exception handling, is to use assertions designed to halt a program rather than execute undefined logic.',
-        flag: '--enable-serialization-asserts',
-        value: true
-      },
-      {
-        name: 'Omit float serialization support',
-        flag: '--omit-float-serialization-support',
-        description: 'Instruct support header generators to omit support for floating point operations in serialization routines. This will result in errors if floating point types are used, however; if you are working on a platform without IEEE754 support and do not use floating point types in your message definitions this option will avoid dead code or compiler errors in generated serialization logic.',
-        value: false
-      }
-    ]
-
     return {
       loadingStatus: '',
       loadingMessage: '',
       loadingURL: '',
       resultURL: '',
+      additionalReposOpen: false,
       loadingTimeout: null,
-      nsRepo: '',
-      nsFile: null,
+      nsFiles: {
+        '0': null,
+        '1': 'https://github.com/UAVCAN/public_regulated_data_types',
+        '2': null
+      },
+      currentNSFilesLen: 3,
       selectedLang: 'c',
       selectedEndian: 'little',
-      endians,
-      flags,
-      languages
+      endians: dataOptions.endians,
+      flags: dataOptions.flags,
+      languages: dataOptions.languages
     }
   },
+
   computed: {
     // TODO: At the moment, I couldn't figure out a good performant way to
     // get enough information on the namespaces within the repo/archive to
@@ -203,6 +184,9 @@ export default {
         ? `--target-endianness=${this.selectedEndian} ` : '';
       command += flags.join(' ');
       return command;
+    },
+    nsFilesKeys() {
+      return Object.keys(this.nsFiles).filter(key => key !== '0');
     }
   },
   mounted() {
@@ -214,81 +198,87 @@ export default {
     }
   },
   methods: {
-    handleFileSelect(file) {
-      // TODO: Perhaps handle this cleaner
-      this.nsFile = file;
+    handleRepoChange(id, repo) {
+      this.nsFiles = Object.assign({}, this.nsFiles, {
+        [id]: repo
+      });
     },
-    handleRepoURLChange(url) {
-      this.nsRepo = url;
+
+    handleRepoAdd() {
+      this.nsFiles = Object.assign({}, this.nsFiles, {
+        [this.currentNSFilesLen]: null
+      });
     },
-    handleSubmit(event) {
+
+    handleRepoRemove(id) {
+      const files = { ...this.nsFiles };
+      delete files[id];
+
+      this.nsFiles = {
+        ...files
+      };
+
+      this.currentNSFilesLen++;
+    },
+
+    async handleSubmit(event) {
       event.preventDefault();
       event.stopPropagation();
 
       // Append data
-      const formData = new FormData();
-      if (this.nsFile) {
-        console.log(this.nsFile);
-        formData.append('archive', this.nsFile);
-      } else {
-        formData.append('archive_url', this.nsRepo + '/archive/master.zip');
-      }
-      formData.append('target_lang', this.selectedLang);
-      formData.append('target_endian', this.selectedEndian);
-      formData.append('flags', this.flags.filter(flag => flag.value).map(flag => flag.flag));
+      const formData = api.createUploadFormData(
+        this.nsFiles,
+        this.selectedLang,
+        this.selectedEndian,
+        this.flags
+      );
 
       this.loading = true;
       this.loadingMessage = 'Uploading...';
 
-      console.log(formData);
-      fetch(process.env.apiURL + '/upload', {
-        method: 'POST',
-        body: formData
-      })
-        .then((res) => {
-          if (!res.ok) {
-            console.log('Fetch error');
-          }
-          return res.json();
-        })
-        .then((data) => {
-          this.loadingURL = data.task_url;
-          // We push to a status/:statusID route, which
-          // enables saving the output in the user's history
-          // This allows the user to come back to the status page
-          // if they accidentally leave
-          // The status page triggers the progress querying
-          this.$router.push({ path: this.loadingURL });
-        })
-        .catch(err => console.log(err));
+      try {
+        const data = await api.upload(formData);
+        console.log(data);
+
+        this.loadingURL = data.task_url;
+        // We push to a status/:statusID route, which
+        // enables saving the output in the user's history
+        // This allows the user to come back to the status page
+        // if they accidentally leave
+        // The status page triggers the progress querying
+        this.$router.push({ path: this.loadingURL });
+      } catch (e) {
+        // Error handling
+        console.log(e);
+      }
     },
-    handleProcessing() {
-      fetch(process.env.apiURL + this.loadingURL)
-        .then(res => res.json())
-        .then((data) => {
-          this.loadingStatus = data.state;
-          this.loadingMessage = data.status;
-          if (data.state === 'SUCCESS') {
-            this.resultURL = data.result;
-            clearInterval(this.loadingTimeout);
-          } else if (data.state === 'CANCELED') {
-            clearInterval(this.loadingTimeout);
-          }
-        })
-        .catch(err => console.log(err));
+    async handleProcessing() {
+      try {
+        const data = await api.getStatus(this.$route.params.statusID);
+        this.loadingStatus = data.state;
+        this.loadingMessage = data.status;
+
+        if (data.state === 'SUCCESS') {
+          this.resultURL = data.result;
+          clearInterval(this.loadingTimeout);
+        } else if (data.state === 'CANCELED') {
+          clearInterval(this.loadingTimeout);
+        }
+      } catch (e) {
+        console.log(e);
+      }
     },
-    handleCancel() {
-      fetch(process.env.apiURL + this.loadingURL + '/cancel')
-        .then((res) => {
-          if (!res.ok) {
-            this.loadingStatus = 'CANCELED';
-            this.loadingMessage = '';
-            this.loadingURL = '';
-            this.resultURL = '';
-            clearInterval(this.loadingTimeout);
-          }
-        })
-        .catch(err => console.log(err));
+    async handleCancel() {
+      try {
+        await api.cancel(this.$route.params.statusID);
+        this.loadingStatus = 'CANCELED';
+        this.loadingMessage = '';
+        this.loadingURL = '';
+        this.resultURL = '';
+        clearInterval(this.loadingTimeout);
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 }

@@ -18,49 +18,36 @@ from nunaserver.settings import ALLOWED_EXTENSIONS
 
 logger = logging.getLogger(__name__)
 
-def fetch_root_namespace_dirs(location: str, arch_dir: Path) -> typing.List[Path]:
-    if "://" in location:
-        dirs = fetch_archive_dirs(location, arch_dir)
-        logger.info(
-            "Resource %r contains the following root namespace directories: %r",
-            location,
-            list(map(str, dirs))
-        )
-        return dirs
-    elif location.endswith(".zip"):
-        with zipfile.ZipFile(location) as zf:
-            zf.extractall(arch_dir)
-        (inner,) = [d for d in Path(arch_dir).iterdir() if d.is_dir()]  # Strip the outer layer, we don't need it
-        assert isinstance(inner, Path)
-        return [d for d in inner.iterdir() if d.is_dir() and not d.name.startswith(".")]
-
-    return [Path(location)]
-
-
-def fetch_archive_dirs(archive_uri: str, arch_dir: Path) -> typing.List[Path]:
-    """
-    Downloads an archive from the specified URI, unpacks it into a temporary directory, and returns the list of
-    directories in the root of the unpacked archive.
-    """
-
-    # TODO: autodetect the type of the archive
-    arch_file = str(Path(arch_dir) / "dsdl.zip")
-
-    logger.info("Downloading the archive from %r into %r...", archive_uri, arch_file)
-    response = requests.get(archive_uri)
-    if response.status_code != http.HTTPStatus.OK:
-        raise RuntimeError(f"Could not download the archive; HTTP error {response.status_code}")
-    with open(arch_file, "wb") as f:
-        f.write(response.content)
-
-    logger.info("Extracting the archive into %r...", arch_dir)
-    with zipfile.ZipFile(arch_file) as zf:
+def unzip_to_directory(file_path, arch_dir):
+    with zipfile.ZipFile(file_path) as zf:
         zf.extractall(arch_dir)
 
-    (inner,) = [d for d in Path(arch_dir).iterdir() if d.is_dir()]  # Strip the outer layer, we don't need it
+def fetch_remote_namespace(url: str, arch_dir: Path):
+    if not (url.startswith("http://") or url.startswith("https://")):
+        raise RuntimeError("Not a valid URL.")
 
-    assert isinstance(inner, Path)
-    return [d for d in inner.iterdir() if d.is_dir() and not d.name.startswith(".")]
+    logger.info(f"Downloading the archive from {url} into {arch_dir}...")
+    if url.startswith("http://github.com") or url.startswith("https://github.com"):
+        res = requests.get(f"{url}/archive/main.zip")
+
+        if res.status_code == http.HTTPStatus.NOT_FOUND:
+            res = requests.get(f"{url}/archive/master.zip")
+    elif url.endswith(".zip"):
+        res = requests.get(url)
+    else:
+        raise RuntimeError("Only zip archives and Github are supported.")
+
+    if res.status_code != http.HTTPStatus.OK:
+        raise RuntimeError(f"Could not download the archive; HTTP error {res.status_code}")
+
+    fd, file_path = tempfile.mkstemp("dsdlarchive")
+
+    with open(fd, "wb") as f:
+        f.write(res.content)
+
+    logger.info("Extracting the archive into %r...", arch_dir)
+    unzip_to_directory(file_path, arch_dir)
+    os.unlink(file_path)
 
 def zipdir(path, ziph):
     # ziph is zipfile handle
