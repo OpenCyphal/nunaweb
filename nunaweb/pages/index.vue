@@ -227,7 +227,7 @@ export default {
 
       // Append data
       const formData = api.createUploadFormData(
-        this.nsFiles,
+        Object.values(this.nsFiles),
         this.selectedLang,
         this.selectedEndian,
         this.flags
@@ -272,7 +272,7 @@ export default {
       try {
         await api.cancel(this.$route.params.statusID);
         this.loadingStatus = 'CANCELED';
-        this.loadingMessage = '';
+        this.loadingMessage = 'Task was canceled.';
         this.loadingURL = '';
         this.resultURL = '';
         clearInterval(this.loadingTimeout);

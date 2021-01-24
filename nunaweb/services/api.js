@@ -54,17 +54,12 @@ export async function upload(formData) {
 }
 
 export async function getStatus(taskID) {
-  const res = await fetch(`${BASE_URL}/${taskID}`);
-  const data = await res.json();
-
-  return {
-    state: data.state,
-    message: data.status
-  };
+  const res = await fetch(`${BASE_URL}/status/${taskID}`);
+  return await res.json();
 }
 
 export async function cancel(taskID) {
-  const res = await fetch(`${BASE_URL}/${taskID}/cancel`);
+  const res = await fetch(`${BASE_URL}/status/${taskID}/cancel`);
   if (!res.ok) {
     throw new Error('Request failed with code ' + res.status + '.');
   } else {
