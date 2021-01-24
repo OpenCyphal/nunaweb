@@ -1,6 +1,6 @@
 <!-- TODO: Break this thing up! It's massive. -->
 <template>
-  <div class="container d-flex flex-column align-items-center text-center p-5">
+  <div class="container d-flex flex-column align-items-center text-center pt-5 px-5">
     <form style="max-width: 960px" v-on:submit="handleSubmit" enctype="multipart/form-data">
       <Logo style="margin-bottom: 3rem" />
       <h1 class="title">
@@ -13,9 +13,29 @@
         id="0"
         :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
         v-on:repo-change="handleRepoChange"
-        class="mt-3 mb-3"
+        class="mt-3 mb-1"
       />
-      <div class="d-flex">
+      <div style="position: relative; text-align: left">
+        <ArchiveSelector
+          v-for="n in nsFilesKeys"
+          :key="n"
+          :id="n"
+          :initialValue="nsFiles[n]"
+          v-on:repo-change="handleRepoChange"
+          v-on:repo-remove="handleRepoRemove"
+          class="my-1"
+          removable
+        />
+        <button
+          class="btn btn-primary mt-1 me-auto"
+          type="button"
+          v-on:click="handleRepoAdd"
+          style=""
+        >
+          Add Namespaces
+        </button>
+      </div>
+      <div class="d-flex mt-4">
         <select
           :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
           v-model="selectedLang"
@@ -63,24 +83,6 @@
             {{ flag.description }}
           </p>
         </div>
-        <a href="#" v-on:click="additionalReposOpen = !additionalReposOpen">
-          {{ additionalReposOpen ? "-" : "+" }} Additional namespace repositories
-        </a>
-        <b-collapse v-model="additionalReposOpen" class="mb-5">
-          <ArchiveSelector
-            v-for="n in nsFilesKeys"
-            :key="n"
-            :id="n"
-            :initialValue="nsFiles[n]"
-            v-on:repo-change="handleRepoChange"
-            v-on:repo-remove="handleRepoRemove"
-            class="my-1"
-            removable
-          />
-          <button class="btn btn-primary mt-2" type="button" v-on:click="handleRepoAdd">
-            Add Repo
-          </button>
-        </b-collapse>
         <p class="mt-2 mb-0" v-if="command">Generation command:</p>
         <pre style="white-space: pre-wrap" v-if="command">{{ command }}</pre>
         <div class="d-flex align-items-center mt-4 flex-wrap">
@@ -166,8 +168,7 @@ export default {
       loadingTimeout: null,
       nsFiles: {
         '0': null,
-        '1': 'https://github.com/UAVCAN/public_regulated_data_types',
-        '2': null
+        '1': 'https://github.com/UAVCAN/public_regulated_data_types'
       },
       currentNSFilesLen: 3,
       selectedLang: 'c',
