@@ -122,12 +122,17 @@
               class="me-2"
             />
             <div class="flex-column">
-              <label>{{ loadingMessage }}</label>
+              <label v-if="loadingStatus === 'FAILURE'">
+                Generation failed.
+              </label>
+              <label v-else>
+                {{ loadingMessage }}
+              </label>
               <p class="small mb-0" v-if="loadingStatus === 'SUCCESS'">
               Download here: <a :href="resultURL">{{ resultURL }}</a>
               </p>
               <p class="small mb-0" v-else-if="loadingStatus === 'FAILURE'">
-              Generation failed.
+                {{ loadingMessage }}
               </p>
               <p class="small mb-0" v-else-if="loadingStatus === 'CANCELED'">
               Generation was canceled. You can submit another.
@@ -260,6 +265,8 @@ export default {
 
         if (data.state === 'SUCCESS') {
           this.resultURL = data.result;
+          clearInterval(this.loadingTimeout);
+        } else if (data.state === 'FAILURE') {
           clearInterval(this.loadingTimeout);
         } else if (data.state === 'CANCELED') {
           clearInterval(this.loadingTimeout);

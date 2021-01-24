@@ -11,6 +11,7 @@ from nunaserver.forms import UploadForm, ValidationError
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from celery.exceptions import TaskRevokedError
+import logging
 import tempfile
 import flask
 import os
@@ -39,33 +40,38 @@ def upload():
 
     try:
         print(flask.request.form)
-        form = UploadForm(flask.request.form)
+        form = UploadForm(flask.request.form, flask.request.files)
     except ValidationError as e:
         print("valid")
         return flask.jsonify(e.errors)
 
     # TODO: Move this out to a celery task
+    print(form.archive_files, form.archive_urls)
     for file in form.archive_files:
         # Create temp file for zip archive
         fd, file_path = tempfile.mkstemp(".zip", "dsdl")
-        fd.close()
 
         # Save and unzip
         file.save(file_path)
         unzip_to_directory(file_path, arch_dir)
+        print(list(Path(arch_dir).iterdir()))
 
         # Delete zip file
         os.unlink(file_path)
     for url in form.archive_urls:
         fetch_remote_namespace(url, arch_dir)
 
-    (inner,) = [d for d in Path(arch_dir).iterdir() if d.is_dir()]  # Strip the outer layer, we don't need it
-    assert isinstance(inner, Path)
-    ns_dirs = [d for d in inner.iterdir() if d.is_dir() and not d.name.startswith(".")]
+    inner = [d for d in Path(arch_dir).iterdir() if d.is_dir()]  # Strip the outer layer, we don't need it
+    ns_dirs = []
+    for path in inner:
+        ns_dirs.extend([d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")])
+
+    print(ns_dirs)
 
     out_dir = Path(tempfile.mkdtemp(prefix="nunavut-out"))
 
-    task = generate_dsdl.delay(list(map(str, ns_dirs)),
+    task = generate_dsdl.delay(str(arch_dir),
+                               list(map(str, ns_dirs)),
                                flask.request.form["target_lang"],
                                str(out_dir))
 

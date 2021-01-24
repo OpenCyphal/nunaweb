@@ -3,6 +3,7 @@ Use the nunavut Python library to actually generate
 the code.
 """
 from pydsdl import read_namespace
+from pydsdl._error import InvalidDefinitionError
 from nunavut import build_namespace_tree
 from nunavut.lang import LanguageContext
 from nunavut.jinja import DSDLCodeGenerator
@@ -20,12 +21,14 @@ from pathlib import Path
 
 @celery.task(bind=True)
 def generate_dsdl(self,
+                  arch_dir: str,
                   namespaces: List[str],
                   lang_target: str,
                   out_dir: str):
     """
     Generate (transpile) the DSDL code.
     """
+    print(namespaces)
 
     # Parse DSDL
     for c, namespace in enumerate(namespaces):
@@ -40,9 +43,13 @@ def generate_dsdl(self,
         extra_includes = namespaces
         extra_includes = list(map(str, extra_includes))
 
-        compound_types = read_namespace(namespace,
-                                        extra_includes,
-                                        allow_unregulated_fixed_port_id=False)
+        try:
+            compound_types = read_namespace(namespace,
+                                            extra_includes,
+                                            allow_unregulated_fixed_port_id=False)
+        except InvalidDefinitionError as e:
+            text = str(e).replace(arch_dir, "")
+            raise RuntimeError(f"{text}")
 
         # Select target language
         lang_context = LanguageContext(lang_target)

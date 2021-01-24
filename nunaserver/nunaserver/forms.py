@@ -9,11 +9,13 @@ class ValidationError(Exception):
         self.errors = errors
 
 class UploadForm:
-    def __init__(self, form):
+    def __init__(self, form, files):
         errors = {}
 
-        self.archive_files = list(form.getlist("archive_files"))
+        self.archive_files = list(files.getlist("archive_files"))
         self.archive_urls = list(set(form.getlist("archive_urls")))
+
+        print(self.archive_files)
 
         if self.archive_files == [] and self.archive_urls == []:
             errors["archive_files"] = "No archive files or URLs for conversion."

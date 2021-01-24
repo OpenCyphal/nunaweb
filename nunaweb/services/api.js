@@ -41,6 +41,7 @@ export function createUploadFormData(nsRepos, targetLang, targetEndian, flags) {
 
 export async function upload(formData) {
   // Upload the form data.
+  console.log(formData.getAll('archive_files'));
   const res = await fetch(`${BASE_URL}/upload`, {
     method: 'POST',
     body: formData
