@@ -1,7 +1,7 @@
 <!-- TODO: Break this thing up! It's massive. -->
 <template>
   <div class="container d-flex flex-column align-items-center text-center pt-5 px-5">
-    <form style="max-width: 960px" v-on:submit="handleSubmit" enctype="multipart/form-data">
+    <form style="max-width: 960px" enctype="multipart/form-data" @submit="handleSubmit">
       <Logo style="margin-bottom: 3rem" />
       <h1 class="title">
         nunaweb
@@ -11,26 +11,26 @@
       </h2>
       <ArchiveSelector
         id="0"
-        :disabled="taskInProgress"
-        v-on:repo-change="handleRepoChange"
         class="mt-3 mb-1"
+        :disabled="taskInProgress"
+        @repo-change="handleRepoChange"
       />
       <div style="position: relative; text-align: left">
         <ArchiveSelector
           v-for="n in nsFilesKeys"
-          :key="n"
           :id="n"
-          :initialValue="nsFiles[n]"
+          :key="n"
+          :initial-value="nsFiles[n]"
           :disabled="taskInProgress"
-          v-on:repo-change="handleRepoChange"
-          v-on:repo-remove="handleRepoRemove"
           class="my-1"
           removable
+          @repo-change="handleRepoChange"
+          @repo-remove="handleRepoRemove"
         />
         <a
+          :class="{ 'disabled': taskInProgress }"
           href="#"
           class="mt-1 me-auto"
-          v-bind:class="{ 'disabled': taskInProgress }"
           type="button"
           style="text-decoration: none"
         >
@@ -39,8 +39,8 @@
       </div>
       <div class="d-flex mt-4">
         <select
-          :disabled="taskInProgress"
           v-model="selectedLang"
+          :disabled="taskInProgress"
           class="form-select me-2"
           aria-label="Target Language"
         >
@@ -50,12 +50,12 @@
             :disabled="lang.disabled"
             :value="lang.value"
           >
-          {{ lang.name }}
+            {{ lang.name }}
           </option>
         </select>
         <select
-          :disabled="taskInProgress"
           v-model="selectedEndian"
+          :disabled="taskInProgress"
           class="form-select"
           aria-label="Select Endianness"
         >
@@ -64,35 +64,35 @@
             :key="endian.value"
             :value="endian.value"
           >
-          {{ endian.name }}
+            {{ endian.name }}
           </option>
         </select>
       </div>
       <div class="align-items-start mt-3" style="text-align: left !important">
         <div v-for="flag in flags" :key="flag.flag" class="form-check">
           <input
+            :id="flag.flag"
+            v-model="flag.value"
             :disabled="taskInProgress"
             class="form-check-input"
             type="checkbox"
-            v-model="flag.value"
-            :id="flag.flag"
-            />
+          />
           <label class="form-check-label" :for="flag.flag">
             {{ flag.name }}
             <code>{{ flag.flag }}</code>
           </label>
-          <p class="small" v-if="flag.description">
+          <p v-if="flag.description" class="small">
             {{ flag.description }}
           </p>
         </div>
-        <p class="mt-2 mb-0" v-if="command">Generation command:</p>
-        <pre style="white-space: pre-wrap" v-if="command">{{ command }}</pre>
+        <p v-if="command" class="mt-2 mb-0">Generation command:</p>
+        <pre v-if="command" style="white-space: pre-wrap">{{ command }}</pre>
         <div class="d-flex align-items-center mt-4 flex-wrap">
           <button
             v-if="taskInProgress"
             type="button"
-            v-on:click="handleCancel"
             class="btn btn-secondary me-3 mb-4"
+            @click="handleCancel"
           >
             Cancel
           </button>
@@ -103,8 +103,8 @@
             value="Submit"
           />
           <div
-            class="d-flex flex-nowrap align-items-center mb-4"
             v-if="loadingStatus !== ''"
+            class="d-flex flex-nowrap align-items-center mb-4"
           >
             <b-icon
               v-if="loadingStatus === 'SUCCESS'"
@@ -133,15 +133,15 @@
               <label v-else>
                 {{ loadingMessage }}
               </label>
-              <p class="small mb-0" v-if="loadingStatus === 'SUCCESS'">
-              Download here: <a :href="resultURL">{{ resultURL }}</a>
+              <p v-if="loadingStatus === 'SUCCESS'" class="small mb-0">
+                Download here: <a :href="resultURL">{{ resultURL }}</a>
               </p>
-              <p class="small mb-0" v-else-if="loadingStatus === 'FAILURE'">
+              <p v-else-if="loadingStatus === 'FAILURE'" class="small mb-0">
                 {{ loadingMessage }}
               </p>
-              <p class="small mb-0" v-else-if="loadingStatus === 'CANCELED'">
-              Generation was canceled. You can submit another.
-              <a href="#" v-on:click="loadingStatus = ''">Hide</a>
+              <p v-else-if="loadingStatus === 'CANCELED'" class="small mb-0">
+                Generation was canceled. You can submit another.
+                <a href="#" @click="loadingStatus = ''">Hide</a>
               </p>
               <p v-else class="small mb-0">
                 This process can take up to several minutes. Leave the page open!
@@ -246,7 +246,6 @@ export default {
 
       try {
         const data = await api.upload(formData);
-        console.log(data);
 
         this.command = data.command;
         const loadingID = data.task_url.split('/')[2];
