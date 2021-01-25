@@ -11,7 +11,7 @@
       </h2>
       <ArchiveSelector
         id="0"
-        :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+        :disabled="taskInProgress"
         v-on:repo-change="handleRepoChange"
         class="mt-3 mb-1"
       />
@@ -21,23 +21,25 @@
           :key="n"
           :id="n"
           :initialValue="nsFiles[n]"
+          :disabled="taskInProgress"
           v-on:repo-change="handleRepoChange"
           v-on:repo-remove="handleRepoRemove"
           class="my-1"
           removable
         />
-        <button
-          class="btn btn-primary mt-1 me-auto"
+        <a
+          href="#"
+          class="mt-1 me-auto"
+          v-bind:class="{ 'disabled': taskInProgress }"
           type="button"
-          v-on:click="handleRepoAdd"
-          style=""
+          style="text-decoration: none"
         >
-          Add Namespaces
-        </button>
+          + Add Namespaces
+        </a>
       </div>
       <div class="d-flex mt-4">
         <select
-          :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+          :disabled="taskInProgress"
           v-model="selectedLang"
           class="form-select me-2"
           aria-label="Target Language"
@@ -69,7 +71,7 @@
       <div class="align-items-start mt-3" style="text-align: left !important">
         <div v-for="flag in flags" :key="flag.flag" class="form-check">
           <input
-            :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+            :disabled="taskInProgress"
             class="form-check-input"
             type="checkbox"
             v-model="flag.value"
@@ -87,7 +89,7 @@
         <pre style="white-space: pre-wrap" v-if="command">{{ command }}</pre>
         <div class="d-flex align-items-center mt-4 flex-wrap">
           <button
-            v-if="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+            v-if="taskInProgress"
             type="button"
             v-on:click="handleCancel"
             class="btn btn-secondary me-3 mb-4"
@@ -155,13 +157,13 @@
 <script>
 import * as dataOptions from '~/services/dataOptions.js';
 import * as api from '~/services/api.js';
+import { handleErrors } from '~/services/errors.js';
 
 export default {
   data() {
     return {
       loadingStatus: '',
       loadingMessage: '',
-      loadingURL: '',
       resultURL: '',
       additionalReposOpen: false,
       command: '',
@@ -182,8 +184,27 @@ export default {
   computed: {
     nsFilesKeys() {
       return Object.keys(this.nsFiles).filter(key => key !== '0');
+    },
+
+    taskInProgress() {
+      return [
+        'PROGRESS',
+        'PENDING',
+        'STARTED',
+        'RETRY'
+      ].includes(this.loadingStatus);
     }
   },
+
+  mounted() {
+    // Kick off status callback
+    // For when the user returns to a route
+    if (this.$route.query.statusID) {
+      clearInterval(this.loadingTimeout);
+      this.loadingTimeout = setInterval(this.handleProcessing, 500);
+    }
+  },
+
   methods: {
     handleRepoChange(id, repo) {
       this.nsFiles = Object.assign({}, this.nsFiles, {
@@ -220,7 +241,7 @@ export default {
         this.flags
       );
 
-      this.loading = true;
+      this.loadingStatus = 'PENDING';
       this.loadingMessage = 'Uploading...';
 
       try {
@@ -228,31 +249,22 @@ export default {
         console.log(data);
 
         this.command = data.command;
-        this.loadingURL = data.task_url;
-        // We push to a status/:statusID route, which
-        // enables saving the output in the user's history
-        // This allows the user to come back to the status page
-        // if they accidentally leave
-        // history.pushState is a little jank as it doesn't communicate
-        // with the nuxt router, but we don't want it to reload
-        // TODO: Cleaner way to do this?
-        history.pushState(
-          { path: this.loadingURL },
-          null,
-          this.loadingURL
-        );
+        const loadingID = data.task_url.split('/')[2];
+        // Push query param so that it's stored in user history
+        this.$router.push({
+          path: this.$route.path,
+          query: { statusID: loadingID }
+        });
 
-        // Kick off URL loading
-        this.loadingURL = window.location.pathname;
+        // Kick off status callback
         this.loadingTimeout = setInterval(this.handleProcessing, 500);
       } catch (e) {
-        // Error handling
-        console.log(e);
+        handleErrors.bind(this)(e);
       }
     },
     async handleProcessing() {
       try {
-        const data = await api.getStatus(window.location.pathname.split('/')[2]);
+        const data = await api.getStatus(this.$route.query.statusID);
         this.loadingStatus = data.state;
         this.loadingMessage = data.status;
 
@@ -265,19 +277,18 @@ export default {
           clearInterval(this.loadingTimeout);
         }
       } catch (e) {
-        console.log(e);
+        handleErrors.bind(this)(e);
       }
     },
     async handleCancel() {
       try {
-        await api.cancel(this.$route.params.statusID);
+        await api.cancel(this.$route.query.statusID);
         this.loadingStatus = 'CANCELED';
         this.loadingMessage = 'Task was canceled.';
-        this.loadingURL = '';
         this.resultURL = '';
         clearInterval(this.loadingTimeout);
       } catch (e) {
-        console.log(e);
+        handleErrors.bind(this)(e);
       }
     }
   }
@@ -288,5 +299,12 @@ export default {
 pre {
   background-color: #EEE;
   padding: 1rem;
+}
+
+a.disabled {
+  /* Make the disabled links grayish*/
+  color: gray;
+  /* And disable the pointer events */
+  pointer-events: none;
 }
 </style>

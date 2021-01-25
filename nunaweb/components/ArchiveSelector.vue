@@ -28,6 +28,7 @@
     <button
       v-else
       v-on:click="clearFile"
+      v-bind:class="{ disabled: disabled }"
       type="button"
       class="btn btn-secondary text-nowrap mt-2"
     >
@@ -36,6 +37,7 @@
     <button
       v-if="removable"
       type="button"
+      v-bind:class="{ disabled: disabled }"
       v-on:click="$emit('repo-remove', id)"
       class="btn btn-danger text-nowrap mt-2 ms-2"
     >

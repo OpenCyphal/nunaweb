@@ -4,6 +4,7 @@
  *
  * Simplifies access to backend API routes in the frontend.
  */
+import { APIError } from '~/services/errors.js';
 
 // Nuxt configured base API backend URL
 const BASE_URL = process.env.apiURL;
@@ -48,7 +49,7 @@ export async function upload(formData) {
   });
 
   if (!res.ok) {
-    throw new Error('Request failed with code ' + res.status + '.');
+    throw new APIError('Request failed with code ' + res.status + '.', res.status);
   }
 
   return await res.json();
@@ -56,14 +57,16 @@ export async function upload(formData) {
 
 export async function getStatus(taskID) {
   const res = await fetch(`${BASE_URL}/status/${taskID}`);
+  if (!res.ok) {
+    throw new APIError('Request failed with code ' + res.status + '.', res.status);
+  }
   return await res.json();
 }
 
 export async function cancel(taskID) {
   const res = await fetch(`${BASE_URL}/status/${taskID}/cancel`);
   if (!res.ok) {
-    throw new Error('Request failed with code ' + res.status + '.');
-  } else {
-    return true;
+    throw new APIError('Request failed with code ' + res.status + '.', res.status);
   }
+  return true;
 }
