@@ -40,10 +40,6 @@ def upload():
     except ValidationError as error:
         return flask.jsonify(error.errors)
 
-    # TODO: Move this out to a celery task, maybe?
-    # Might be difficult to move files out (only way is encode to b64 and
-    # yeet it across redis = might run into RAM issues)
-    # Could just move URL fetching
     for file in form.archive_files:
         # Create temp file for zip archive
         _, file_path = tempfile.mkstemp(".zip", "dsdl")

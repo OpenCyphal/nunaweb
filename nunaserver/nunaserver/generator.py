@@ -77,8 +77,6 @@ def generate_dsdl(
         generator.generate_all()
 
     # Zip result
-    # TODO: Is uuid4 secure enough? Might switch to something more secure
-    # Technically should be secure (uses urandom) but ehhhhhh
     zipfile_name = f"nunavut_out-{uuid.uuid4()}.zip"
     zipf = zipfile.ZipFile(
         Path(settings.OUT_FILE_FOLDER) / zipfile_name, "w", zipfile.ZIP_DEFLATED

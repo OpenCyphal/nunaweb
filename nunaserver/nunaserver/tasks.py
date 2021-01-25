@@ -5,6 +5,7 @@ to allow for long-running jobs.
 from celery import Celery, Task
 from nunaserver import settings
 
+
 def make_celery(name):
     """
     Create a Celery wrapper for use in running
@@ -16,7 +17,9 @@ def make_celery(name):
 
     return celery_inst
 
+
 celery = make_celery("nunaserver")
+
 
 def init_celery(celery_inst, app):
     """
@@ -29,6 +32,7 @@ def init_celery(celery_inst, app):
         """
         Task running with flask context.
         """
+
         def __call__(self, *args, **kwargs):
             with app.app_context():
                 return self.run(*args, **kwargs)

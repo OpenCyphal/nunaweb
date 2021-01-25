@@ -1,9 +1,6 @@
 """
 Utilities for nunaserver.
 This includes utilities to fetch archives from Github, etc.
-
-TODO: Refactor duplicate code into common function and improve
-readability
 """
 import os
 import http
@@ -34,6 +31,10 @@ def fetch_remote_namespace(url: str, arch_dir: Path):
 
         if res.status_code == http.HTTPStatus.NOT_FOUND:
             res = requests.get(f"{url}/archive/master.zip")
+            if res.status_code == http.HTTPStatus.NOT_FOUND:
+                raise RuntimeError(
+                    f"Server could not fetch Github namespace {url}. Please specify the zip archive manually."
+                )
     elif url.endswith(".zip"):
         res = requests.get(url)
     else:
