@@ -54,7 +54,7 @@
           </option>
         </select>
         <select
-          :disabled="['PROGRESS', 'PENDING', 'STARTED', 'RETRY'].includes(loadingStatus)"
+          :disabled="taskInProgress"
           v-model="selectedEndian"
           class="form-select"
           aria-label="Select Endianness"
