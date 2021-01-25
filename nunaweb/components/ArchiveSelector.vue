@@ -60,12 +60,12 @@ export default {
     },
     initialValue: {
       type: String,
-      required: true
+      default: ''
     }
   },
   data() {
     return {
-      namespaceRepo: this.initialValue || '',
+      namespaceRepo: this.initialValue,
       isFile: false
     };
   },
