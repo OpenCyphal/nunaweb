@@ -17,10 +17,12 @@ export default {
 
   // Global CSS (https://go.nuxtjs.dev/config-css)
   css: [
+    'bootstrap/dist/css/bootstrap.min.css'
   ],
 
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: [
+    'plugins/bootstrap-vue-min'
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
@@ -35,16 +37,16 @@ export default {
 
   // Modules (https://go.nuxtjs.dev/config-modules)
   modules: [
-    // https://go.nuxtjs.dev/bootstrap
-    'bootstrap-vue/nuxt'
   ],
-
-  bootstrapVue: {
-    icons: true
-  },
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {
+    // analyze: true,
+  },
+
+  // Generate config
+  generate: {
+    manifest: false
   },
 
   // Configure environment options, such as API url
