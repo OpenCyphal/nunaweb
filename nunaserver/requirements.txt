@@ -1,7 +1,7 @@
 # Flask for serving (obviously) + CORS api
 flask
-flask-wtf
 flask-cors
+flask-limiter
 
 # Requests for downloading external repos
 requests

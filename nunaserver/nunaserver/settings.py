@@ -12,6 +12,12 @@ SERVER_VERSION = os.environ.get("NUNASERVER_VERSION") or "v1.0.0"
 UPLOAD_FOLDER = os.environ.get("NS_UPLOAD_FOLDER") or "./uploads"
 ALLOWED_EXTENSIONS = {"zip"}
 
+# Rate limiting (set as needed)
+# These defaults might be too high; not sure
+UPLOAD_LIMITS = ["200 per day", "20 per minute"]
+UPLOAD_SIZE_MAX = 1 * 1024 * 1024 # 32 MB max
+REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024 # 32 MB max
+
 # Celery
 CELERY_RESULT_BACKEND = os.environ.get("NS_REDIS_RESULT") or "redis://localhost"
 CELERY_BROKER_URL = os.environ.get("NS_REDIS_BROKER") or "redis://localhost:6379/0"

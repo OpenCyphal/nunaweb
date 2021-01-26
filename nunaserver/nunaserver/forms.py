@@ -25,11 +25,12 @@ class UploadForm:
         self.archive_files = list(files.getlist("archive_files"))
         self.archive_urls = list(set(form.getlist("archive_urls")))
 
-        print(self.archive_files)
-
         if self.archive_files == [] and self.archive_urls == []:
             errors["archive_files"] = "No archive files or URLs for conversion."
             errors["archive_urls"] = "No archive files or URLs for conversion."
+
+        if len(self.archive_urls) > 5:
+            errors["archive_urls"] = "Too many archive URLs."
 
         try:
             self.target_lang = form["target_lang"]

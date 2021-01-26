@@ -33,6 +33,7 @@
           class="mt-1 me-auto"
           type="button"
           style="text-decoration: none"
+          @click="handleRepoAdd"
         >
           + Add Namespaces
         </a>
@@ -216,6 +217,7 @@ export default {
       this.nsFiles = Object.assign({}, this.nsFiles, {
         [this.currentNSFilesLen]: null
       });
+      this.currentNSFilesLen++;
     },
 
     handleRepoRemove(id) {
@@ -246,8 +248,6 @@ export default {
 
       try {
         const data = await api.upload(formData);
-
-        this.command = data.command;
         const loadingID = data.task_url.split('/')[2];
         // Push query param so that it's stored in user history
         this.$router.push({
@@ -266,6 +266,10 @@ export default {
         const data = await api.getStatus(this.$route.query.statusID);
         this.loadingStatus = data.state;
         this.loadingMessage = data.status;
+
+        if (data.command !== '') {
+          this.command = data.command;
+        }
 
         if (data.state === 'SUCCESS') {
           this.resultURL = data.result;

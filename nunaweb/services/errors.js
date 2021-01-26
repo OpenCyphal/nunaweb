@@ -23,6 +23,11 @@ export function handleErrors(e) {
         this.loadingMessage = 'One or more fields are missing or incorrect.';
         break;
       }
+      case 413: {
+        this.loadingStatus = 'FAILURE';
+        this.loadingMessage = 'Namespace upload size too large.';
+        break;
+      }
       case 500: {
         this.loadingStatus = 'FAILURE';
         this.loadingMessage = 'Backend encountered an unexpected error';

@@ -6,12 +6,12 @@ import os
 from pathlib import Path
 import flask
 from nunaserver import settings
+from nunaserver.limiter import limiter
 from nunaserver.utils.archive_utils import fetch_remote_namespace, unzip_to_directory
 from nunaserver.generator import generate_dsdl
 from nunaserver.forms import UploadForm, ValidationError
 
 api = flask.Blueprint("api", __name__)
-
 
 @api.route("/", methods=["GET"])
 def root():
@@ -23,6 +23,7 @@ def root():
 
 # pylint: disable=invalid-name,too-many-locals
 @api.route("/upload", methods=["POST"])
+@limiter.limit(settings.UPLOAD_LIMITS)
 def upload():
     """
     Handle uploaded DSDL namespace repository archives.
@@ -40,6 +41,8 @@ def upload():
     except ValidationError as error:
         return flask.jsonify(error.errors)
 
+    # Unzip files in route so we don't have to pass to Celery
+    # Max 32M = should be fast enough
     for file in form.archive_files:
         # Create temp file for zip archive
         _, file_path = tempfile.mkstemp(".zip", "dsdl")
@@ -50,50 +53,19 @@ def upload():
 
         # Delete zip file
         os.unlink(file_path)
-    for url in form.archive_urls:
-        fetch_remote_namespace(url, arch_dir)
 
-    # Gather all the namespace directories
-    inner = [d for d in Path(arch_dir).iterdir() if d.is_dir()]
-    ns_dirs = []
-    for path in inner:
-        ns_dirs.extend(
-            [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
-        )
-
-    out_dir = Path(tempfile.mkdtemp(prefix="nunavut-out"))
-
-    # Generate nnvg command
-    # pylint: disable=invalid-name
-    command = ""
-    for c, ns_dir in enumerate(ns_dirs):
-        if c > 0:
-            command += "\n"
-        command += "nnvg "
-        command += f"--target-language {form.target_lang} "
-        if form.target_endian != "any":
-            command += f"--target-endianness {form.target_endian} "
-        command += f"{' '.join(form.flags)}"
-        command += f" dsdl_src{str(ns_dir).replace(str(arch_dir), '')}"
-        for lookup_dir in ns_dirs:
-            if lookup_dir != ns_dir:
-                command += (
-                    f" --lookup dsdl_src{str(lookup_dir).replace(str(arch_dir), '')}"
-                )
-
+    # Kick off Celery task to generate DSDL
     task = generate_dsdl.delay(
+        form.archive_urls,
         str(arch_dir),
-        list(map(str, ns_dirs)),
         form.target_lang,
         form.target_endian,
-        form.flags,
-        str(out_dir),
+        form.flags
     )
 
     return (
         flask.jsonify(
             {
-                "command": command,
                 "task_url": flask.url_for("api.taskstatus", task_id=task.id),
             }
         ),
@@ -122,6 +94,7 @@ def taskstatus(task_id):
                 "current": task.info.get("current", 0),
                 "total": task.info.get("total", 1),
                 "status": task.info.get("status", ""),
+                "url": task.info.get("command", "")
             }
             if "result" in task.info:
                 response["result"] = task.info["result"]

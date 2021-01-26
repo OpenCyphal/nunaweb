@@ -3,6 +3,7 @@ Use the nunavut Python library to actually generate
 the code.
 """
 import uuid
+import tempfile
 import zipfile
 from typing import List
 from pathlib import Path
@@ -13,24 +14,71 @@ from nunavut.lang import LanguageContext
 from nunavut.jinja import DSDLCodeGenerator
 from nunaserver import settings
 from nunaserver.tasks import celery
-from nunaserver.utils.archive_utils import zipdir
+from nunaserver.utils.archive_utils import zipdir, fetch_remote_namespace
 
 
 # pylint: disable=too-many-locals,too-many-arguments
 @celery.task(bind=True)
 def generate_dsdl(
     self,
+    urls: List[str],
     arch_dir: str,
-    namespaces: List[str],
     target_lang: str,
     target_endian: str,
     flags: List[str],
-    out_dir: str,
 ):
     """
     Generate (transpile) the DSDL code.
     """
-    print(namespaces)
+    # pylint: disable=invalid-name
+    for c,url in enumerate(urls):
+        self.update_state(
+            state="PROGRESS",
+            meta={
+                "current": c + 1,
+                "total": len(urls),
+                "status": f"Fetching remote namespace {url}",
+            },
+        )
+        fetch_remote_namespace(url, arch_dir)
+
+    # Gather all the namespace directories
+    inner = [d for d in Path(arch_dir).iterdir() if d.is_dir()]
+    namespaces = []
+    for path in inner:
+        namespaces.extend(
+            [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
+        )
+
+    out_dir = Path(tempfile.mkdtemp(prefix="nunavut-out"))
+
+    # Generate nnvg command
+    # pylint: disable=invalid-name
+    command = ""
+    for c, ns_dir in enumerate(namespaces):
+        if c > 0:
+            command += "\n"
+        command += "nnvg "
+        command += f"--target-language {target_lang} "
+        if target_endian != "any":
+            command += f"--target-endianness {target_endian} "
+        command += f"{' '.join(flags)}"
+        command += f" dsdl_src{str(ns_dir).replace(str(arch_dir), '')}"
+        for lookup_dir in namespaces:
+            if lookup_dir != ns_dir:
+                command += (
+                    f" --lookup dsdl_src{str(lookup_dir).replace(str(arch_dir), '')}"
+                )
+
+    self.update_state(
+        state="PROGRESS",
+        meta={
+            "current": 0,
+            "total": len(namespaces),
+            "status": "Preparing to generate namespaces",
+            "command": command
+        },
+    )
 
     # Parse DSDL
     # pylint: disable=invalid-name

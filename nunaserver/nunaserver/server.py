@@ -8,6 +8,7 @@ from pathlib import Path
 import flask
 from flask_cors import CORS
 from nunaserver import settings
+from nunaserver.limiter import limiter
 from nunaserver.views import api
 from nunaserver.tasks import celery, init_celery
 
@@ -15,6 +16,8 @@ app = flask.Flask(__name__)
 app.config["UPLOAD_FOLDER"] = settings.UPLOAD_FOLDER
 app.config["OUT_FOLDER"] = settings.OUT_FOLDER
 app.config["OUT_FILE_FOLDER"] = settings.OUT_FILE_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = settings.UPLOAD_SIZE_MAX
+limiter.init_app(app)
 CORS(app)
 
 # Setup celery
