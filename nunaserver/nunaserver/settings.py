@@ -15,8 +15,8 @@ ALLOWED_EXTENSIONS = {"zip"}
 # Rate limiting (set as needed)
 # These defaults might be too high; not sure
 UPLOAD_LIMITS = ["200 per day", "20 per minute"]
-UPLOAD_SIZE_MAX = 1 * 1024 * 1024 # 32 MB max
-REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024 # 32 MB max
+UPLOAD_SIZE_MAX = 16 * 1024 * 1024 # 16 MB max
+REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024 # 8 MB max
 
 # Celery
 CELERY_RESULT_BACKEND = os.environ.get("NS_REDIS_RESULT") or "redis://localhost"
