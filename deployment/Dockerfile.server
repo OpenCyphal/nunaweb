@@ -1,0 +1,5 @@
+FROM python:3.9.1-slim
+COPY nunaserver/requirements.txt /
+RUN pip3 install -r /requirements.txt
+RUN mkdir /nunaserver
+WORKDIR /nunaserver
