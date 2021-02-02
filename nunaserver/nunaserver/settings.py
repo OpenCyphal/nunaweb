@@ -3,6 +3,7 @@ Global settings and constants read by Flask and other
 parts of the server.
 """
 import logging
+import sys
 import os
 
 # Server version
@@ -35,5 +36,6 @@ OUT_FILE_FOLDER = os.environ.get("NS_STATIC_FOLDER") or "./static"
 OUT_SERVER_URL = os.environ.get("NS_STATIC_SERVER_URL") or "http://localhost:8000"
 # ^^ Set this to production static file server URL
 
-# Misc.
-LOG_LEVEL = logging.WARNING
+# Logging
+LOG_FILE = os.environ.get("NS_LOG_FILE") or sys.stderr
+LOG_LEVEL = int(os.environ.get("NS_LOG_LEVEL") or logging.WARNING)
