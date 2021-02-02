@@ -24,7 +24,7 @@ CORS(app)
 init_celery(celery, app)
 
 # Setup logging
-logging.basicConfig(stream=sys.stderr, level=settings.LOG_LEVEL, format="%(message)s")
+logging.basicConfig(stream=settings.LOG_FILE, level=settings.LOG_LEVEL, format="%(message)s")
 logging.info("Running %s using sys.prefix: %s", Path(__file__).name, sys.prefix)
 
 # Prep upload folder
