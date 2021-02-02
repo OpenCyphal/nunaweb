@@ -15,7 +15,7 @@ ALLOWED_EXTENSIONS = {"zip"}
 
 # Rate limiting (set as needed)
 # These defaults might be too high; not sure
-UPLOAD_LIMITS = ["200 per day", "20 per minute"]
+UPLOAD_LIMITS = "200/day;20/minute"
 UPLOAD_SIZE_MAX = 16 * 1024 * 1024 # 16 MB max
 REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024 # 8 MB max
 
