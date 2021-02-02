@@ -9,6 +9,13 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://localhost
       - CELERY_RESULT_BACKEND=redis://localhost
+      - NS_UPLOAD_FOLDER=/nunaserver/uploads
+      - NS_REDIS_RESULT=redis://localhost
+      - NS_REDIS_BROKER=redis://localhost:6379/0
+      - NS_WORK_FOLDER=/nunaserver/uploads
+      - NS_STATIC_FOLDER=/nunaserver/static
+      - NS_STATIC_SERVER_URL=http://localhost:8000 # Set to URL
+      - NS_LOG_FOLDER=stderr
     command: "bash -c 'cd /nunaserver && pip3 install -r requirements.txt && celery -A nunaserver.generator worker --loglevel=info'"
   nunaserver:
     image: python:latest
@@ -23,6 +30,7 @@ services:
       - NS_WORK_FOLDER=/nunaserver/uploads
       - NS_STATIC_FOLDER=/nunaserver/static
       - NS_STATIC_SERVER_URL=http://localhost:8000 # Set to URL
+      - NS_LOG_FOLDER=stderr
     command: "bash -c 'cd /nunaserver && pip3 install -r requirements.txt && python3 -m nunaserver'"
   fileserver:
     image: python:latest

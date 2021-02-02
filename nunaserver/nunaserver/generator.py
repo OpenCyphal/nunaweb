@@ -14,8 +14,10 @@ from nunavut.lang import LanguageContext
 from nunavut.jinja import DSDLCodeGenerator
 from nunaserver import settings
 from nunaserver.tasks import celery
+from nunaserver.logging import init_logging
 from nunaserver.utils.archive_utils import zipdir, fetch_remote_namespace
 
+init_logging()
 
 # pylint: disable=too-many-locals,too-many-arguments
 @celery.task(bind=True)
@@ -30,8 +32,9 @@ def generate_dsdl(
     """
     Generate (transpile) the DSDL code.
     """
+
     # pylint: disable=invalid-name
-    for c,url in enumerate(urls):
+    for c, url in enumerate(urls):
         self.update_state(
             state="PROGRESS",
             meta={
@@ -76,7 +79,7 @@ def generate_dsdl(
             "current": 0,
             "total": len(namespaces),
             "status": "Preparing to generate namespaces",
-            "command": command
+            "command": command,
         },
     )
 

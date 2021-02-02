@@ -6,6 +6,8 @@
 instance/*
 static/
 uploads/
+logs/
+nunaserver.log
 !instance/.gitignore
 .webassets-cache
 

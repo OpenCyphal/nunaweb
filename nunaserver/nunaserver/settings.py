@@ -15,9 +15,9 @@ ALLOWED_EXTENSIONS = {"zip"}
 
 # Rate limiting (set as needed)
 # These defaults might be too high; not sure
-UPLOAD_LIMITS = ["200 per day", "20 per minute"]
-UPLOAD_SIZE_MAX = 16 * 1024 * 1024 # 16 MB max
-REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024 # 8 MB max
+UPLOAD_LIMITS = "200/day;20/minute"
+UPLOAD_SIZE_MAX = 16 * 1024 * 1024  # 16 MB max
+REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024  # 8 MB max
 
 # Celery
 CELERY_RESULT_BACKEND = os.environ.get("NS_REDIS_RESULT") or "redis://localhost"
@@ -37,5 +37,5 @@ OUT_SERVER_URL = os.environ.get("NS_STATIC_SERVER_URL") or "http://localhost:800
 # ^^ Set this to production static file server URL
 
 # Logging
-LOG_FILE = sys.stderr
-LOG_LEVEL = logging.WARNING
+LOG_FILE = os.environ.get("NS_LOG_FILE") or "nunaserver.log"
+LOG_LEVEL = int(os.environ.get("NS_LOG_LEVEL") or logging.WARNING)

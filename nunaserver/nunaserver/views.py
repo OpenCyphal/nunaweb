@@ -13,6 +13,7 @@ from nunaserver.forms import UploadForm, ValidationError
 
 api = flask.Blueprint("api", __name__)
 
+
 @api.route("/", methods=["GET"])
 def root():
     """
@@ -60,7 +61,7 @@ def upload():
         str(arch_dir),
         form.target_lang,
         form.target_endian,
-        form.flags
+        form.flags,
     )
 
     return (
@@ -94,7 +95,7 @@ def taskstatus(task_id):
                 "current": task.info.get("current", 0),
                 "total": task.info.get("total", 1),
                 "status": task.info.get("status", ""),
-                "url": task.info.get("command", "")
+                "url": task.info.get("command", ""),
             }
             if "result" in task.info:
                 response["result"] = task.info["result"]

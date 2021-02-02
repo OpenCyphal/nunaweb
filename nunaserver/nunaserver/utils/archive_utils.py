@@ -71,4 +71,7 @@ def zipdir(path, ziph):
 
 
 def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in settings.ALLOWED_EXTENSIONS
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in settings.ALLOWED_EXTENSIONS
+    )
