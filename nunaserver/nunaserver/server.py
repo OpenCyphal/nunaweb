@@ -4,7 +4,6 @@ Main Flask server configuration and startup.
 import sys
 import os
 import logging
-import time
 from pathlib import Path
 import flask
 from flask_cors import CORS
@@ -36,12 +35,12 @@ if not os.path.isdir(settings.UPLOAD_FOLDER):
 # Prep outputs folder
 if not os.path.isdir(settings.OUT_FOLDER):
     os.mkdir(settings.OUT_FOLDER)
-    logging.info(f"Made {settings.UPLOAD_FOLDER}")
+    logging.info(f"Made {settings.OUT_FOLDER}")
 
 # Prep zip outputs folder
 if not os.path.isdir(settings.OUT_FILE_FOLDER):
     os.mkdir(settings.OUT_FILE_FOLDER)
-    logging.info(f"Made {settings.UPLOAD_FOLDER}")
+    logging.info(f"Made {settings.OUT_FILE_FOLDER}")
 
 
 app.register_blueprint(api)
