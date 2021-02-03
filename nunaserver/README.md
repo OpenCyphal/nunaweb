@@ -17,7 +17,6 @@ production setup is in the works to simplify this process.
 
 Required tools for the recommended setup process:
 - Python 3.7+ (and pip)
-- Docker
 
 1. install requirements with `pip3 install -r requirements.txt`
 1a. install dev requirements with `pip3 install -r requirements-dev.txt`
@@ -36,13 +35,10 @@ Deploying the server consists of 3 steps:
 3. Deploying Celery
 4. Deploying a static file server
 
-TODO: Plans are in the works for automating deployment
-with Docker.
-TODO: The project currently needs to be evaluated for scalability.
+(Note: Obviously, install dependencies before following these steps)
 
 Change the settings in `nunaserver/settings.py` to match your planned
-production environment.
-TODO: Env support is planned.
+production environment. Alternatively, you can set environment variables.
 
 Flask can be deployed with any regular WSGI server. For example, Gunicorn:
 `gunicorn --bind 0.0.0.0:5000 nunaserver.wsgi:app`
@@ -50,6 +46,7 @@ Flask can be deployed with any regular WSGI server. For example, Gunicorn:
 will run a production WSGI server on port 5000. You can also configure
 nginx or most other popular web servers to run nunaserver as a WSGI app.
 
-Celery is more or less the same as the above dev command.
+The Celery worker can be started in the same way as in the development process.
 
-A static file server can be configured using your web server of choice.
+Nunaserver builds and outputs zip archives of generated code in the configured output directory
+(`static/` by default). A static file server can be configured using your web server of choice.
