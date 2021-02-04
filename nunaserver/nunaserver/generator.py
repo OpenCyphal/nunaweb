@@ -98,6 +98,7 @@ def generate_dsdl(
                 "current": c + 1,
                 "total": len(namespaces),
                 "status": "Generating namespace: " + namespace.split("/")[-1],
+                "command": command,
             },
         )
 
@@ -143,6 +144,7 @@ def generate_dsdl(
     return {
         "current": len(namespaces),
         "total": len(namespaces),
+        "command": command,
         "status": "Complete!",
         "result": f"{settings.OUT_SERVER_URL}/{zipfile_name}",
     }

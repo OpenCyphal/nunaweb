@@ -95,7 +95,7 @@ def taskstatus(task_id):
                 "current": task.info.get("current", 0),
                 "total": task.info.get("total", 1),
                 "status": task.info.get("status", ""),
-                "url": task.info.get("command", ""),
+                "command": task.info.get("command", ""),
             }
             if "result" in task.info:
                 response["result"] = task.info["result"]
