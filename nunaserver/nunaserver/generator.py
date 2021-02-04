@@ -5,6 +5,7 @@ the code.
 import uuid
 import tempfile
 import zipfile
+import logging
 from typing import List
 from pathlib import Path
 from pydsdl import read_namespace
@@ -49,9 +50,13 @@ def generate_dsdl(
     inner = [d for d in Path(arch_dir).iterdir() if d.is_dir()]
     namespaces = []
     for path in inner:
-        namespaces.extend(
-            [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
-        )
+        subnss = [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
+        if len(subnss) > 0:
+            namespaces.extend(
+                [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
+            )
+        else:
+            namespaces.append(path)
 
     out_dir = Path(tempfile.mkdtemp(prefix="nunavut-out"))
 
