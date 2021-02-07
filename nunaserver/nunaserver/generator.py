@@ -50,7 +50,9 @@ def generate_dsdl(
     inner = [d for d in Path(arch_dir).iterdir() if d.is_dir()]
     namespaces = []
     for path in inner:
-        subnss = [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
+        subnss = [
+            d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")
+        ]
         if len(subnss) > 0:
             namespaces.extend(
                 [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
@@ -122,7 +124,12 @@ def generate_dsdl(
         language_options["enable_serialization_asserts"] = (
             "--enable-serialization-asserts" in flags
         )
-        lang_context = LanguageContext(target_lang)
+        lang_context = LanguageContext(
+            target_lang,
+            omit_serialization_support_for_target="--omit-serialization-support"
+            in flags,
+            language_options=language_options,
+        )
 
         # Build namespace tree
         root_namespace = build_namespace_tree(

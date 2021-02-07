@@ -38,6 +38,12 @@ export const flags = [
     value: true
   },
   {
+    name: 'Omit serialization support',
+    flag: '--omit-serialization-support',
+    description: 'If provided then the types generated will be POD datatypes with no additional logic. By default types generated include serialization routines and additional support libraries, headers, or methods.',
+    value: false
+  },
+  {
     name: 'Omit float serialization support',
     flag: '--omit-float-serialization-support',
     description: 'Instruct support header generators to omit support for floating point operations in serialization routines. This will result in errors if floating point types are used, however; if you are working on a platform without IEEE754 support and do not use floating point types in your message definitions this option will avoid dead code or compiler errors in generated serialization logic.',
