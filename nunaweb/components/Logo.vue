@@ -1,5 +1,7 @@
 <template>
-  <img src="~/static/UAVCAN_logo.png" class="NuxtLogo">
+  <a href="https://uavcan.org" style="display: block">
+    <img src="~/static/UAVCAN_logo.png" class="NuxtLogo">
+  </a>
 </template>
 
 <style>
