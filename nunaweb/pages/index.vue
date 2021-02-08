@@ -1,157 +1,172 @@
 <!-- TODO: Break this thing up! It's massive. -->
 <template>
-  <div class="container d-flex flex-column align-items-center text-center pt-5 px-5">
-    <form style="max-width: 960px" enctype="multipart/form-data" @submit="handleSubmit">
-      <Logo style="margin-bottom: 3rem" />
-      <h1 class="title">
-        nunaweb
-      </h1>
-      <h2 class="lead">
-        transpile DSDL code from the web
-      </h2>
-      <ArchiveSelector
-        id="0"
-        class="mt-3 mb-1"
-        :disabled="taskInProgress"
-        @repo-change="handleRepoChange"
-      />
-      <div style="position: relative; text-align: left">
-        <ArchiveSelector
-          v-for="n in nsFilesKeys"
-          :id="n"
-          :key="n"
-          :initial-value="nsFiles[n]"
-          :disabled="taskInProgress"
-          class="my-1"
-          removable
-          @repo-change="handleRepoChange"
-          @repo-remove="handleRepoRemove"
-        />
-        <a
-          :class="{ 'disabled': taskInProgress }"
-          href="#"
-          class="mt-1 me-auto"
-          type="button"
-          style="text-decoration: none"
-          @click="handleRepoAdd"
-        >
-          + Add Namespaces
-        </a>
-      </div>
-      <div class="d-flex mt-4">
-        <select
-          v-model="selectedLang"
-          :disabled="taskInProgress"
-          class="form-select me-2"
-          aria-label="Target Language"
-        >
-          <option
-            v-for="lang in languages"
-            :key="lang.value"
-            :disabled="lang.disabled"
-            :value="lang.value"
-          >
-            {{ lang.name }}
-          </option>
-        </select>
-        <select
-          v-model="selectedEndian"
-          :disabled="taskInProgress"
-          class="form-select"
-          aria-label="Select Endianness"
-        >
-          <option
-            v-for="endian in endians"
-            :key="endian.value"
-            :value="endian.value"
-          >
-            {{ endian.name }}
-          </option>
-        </select>
-      </div>
-      <div class="align-items-start mt-3" style="text-align: left !important">
-        <div v-for="flag in flags" :key="flag.flag" class="form-check">
-          <input
-            :id="flag.flag"
-            v-model="flag.value"
-            :disabled="taskInProgress"
-            class="form-check-input"
-            type="checkbox"
-          />
-          <label class="form-check-label" :for="flag.flag">
-            {{ flag.name }}
-            <code>{{ flag.flag }}</code>
-          </label>
-          <p v-if="flag.description" class="small">
-            {{ flag.description }}
-          </p>
+  <div>
+    <div class="container d-flex flex-column align-items-center text-center pt-5 px-5">
+      <form style="max-width: 960px" enctype="multipart/form-data" @submit="handleSubmit">
+        <Logo style="margin-bottom: 3rem" />
+        <h1 class="title">
+          nunaweb
+        </h1>
+        <h2 class="lead">
+          transpile DSDL code from the web
+        </h2>
+        <div class="d-flex justify-content-center">
+          <a class="noline mx-3 mb-0" href="https://github.com/UAVCAN/nunaweb">Source</a>
+          <a class="noline mx-3 mb-0" href="https://nunavut.readthedocs.io/en/latest/README.html">Nunavut Docs</a>
+          <a class="noline mx-3 mb-0" href="https://uavcan.org">UAVCAN</a>
         </div>
-        <p v-if="command" class="mt-2 mb-0">Generation command:</p>
-        <pre v-if="command" style="white-space: pre-wrap">{{ command }}</pre>
-        <div class="d-flex align-items-center mt-4 flex-wrap">
-          <button
-            v-if="taskInProgress"
-            type="button"
-            class="btn btn-secondary me-3 mb-4"
-            @click="handleCancel"
-          >
-            Cancel
-          </button>
-          <input
-            v-else
-            type="submit"
-            class="btn btn-primary me-3 mb-4"
-            value="Submit"
+        <ArchiveSelector
+          id="0"
+          class="mt-3 mb-1"
+          :disabled="taskInProgress"
+          @repo-change="handleRepoChange"
+        />
+        <div style="position: relative; text-align: left">
+          <ArchiveSelector
+            v-for="n in nsFilesKeys"
+            :id="n"
+            :key="n"
+            :initial-value="nsFiles[n]"
+            :disabled="taskInProgress"
+            class="my-1"
+            removable
+            @repo-change="handleRepoChange"
+            @repo-remove="handleRepoRemove"
           />
-          <div
-            v-if="loadingStatus !== ''"
-            class="d-flex flex-nowrap align-items-center mb-4"
+          <a
+            :class="{ 'disabled': taskInProgress }"
+            href="#"
+            class="mt-1 me-auto"
+            type="button"
+            style="text-decoration: none"
+            @click="handleRepoAdd"
           >
-            <b-icon
-              v-if="loadingStatus === 'SUCCESS'"
-              icon="check-circle-fill"
-              variant="success"
-              style="width: 2rem; height: 2rem;"
-              class="me-2"
+            + Add Namespaces
+          </a>
+        </div>
+        <div class="d-flex mt-4">
+          <select
+            v-model="selectedLang"
+            :disabled="taskInProgress"
+            class="form-select me-2"
+            aria-label="Target Language"
+          >
+            <option
+              v-for="lang in languages"
+              :key="lang.value"
+              :disabled="lang.disabled"
+              :value="lang.value"
+            >
+              {{ lang.name }}
+            </option>
+          </select>
+          <select
+            v-model="selectedEndian"
+            :disabled="taskInProgress"
+            class="form-select"
+            aria-label="Select Endianness"
+          >
+            <option
+              v-for="endian in endians"
+              :key="endian.value"
+              :value="endian.value"
+            >
+              {{ endian.name }}
+            </option>
+          </select>
+        </div>
+        <div class="align-items-start mt-3" style="text-align: left !important">
+          <div v-for="flag in flags" :key="flag.flag" class="form-check">
+            <input
+              :id="flag.flag"
+              v-model="flag.value"
+              :disabled="taskInProgress"
+              class="form-check-input"
+              type="checkbox"
             />
-            <b-icon
-              v-else-if="loadingStatus === 'FAILURE' || loadingStatus === 'CANCELED'"
-              variant="danger"
-              icon="exclamation-circle-fill"
-              style="width: 2rem; height: 2rem;"
-              class="me-2"
-            />
-            <b-spinner
+            <label class="form-check-label" :for="flag.flag">
+              {{ flag.name }}
+              <code>{{ flag.flag }}</code>
+            </label>
+            <p v-if="flag.description" class="small">
+              {{ flag.description }}
+            </p>
+          </div>
+          <p v-if="command" class="mt-2 mb-0">Generation command:</p>
+          <pre v-if="command" style="white-space: pre-wrap">{{ command }}</pre>
+          <div class="d-flex align-items-center mt-4 flex-wrap">
+            <button
+              v-if="taskInProgress"
+              type="button"
+              class="btn btn-secondary me-3 mb-4"
+              @click="handleCancel"
+            >
+              Cancel
+            </button>
+            <input
               v-else
-              style="width: 2rem; height: 2rem;"
-              variant="success"
-              class="me-2"
+              type="submit"
+              class="btn btn-primary me-3 mb-4"
+              value="Submit"
             />
-            <div class="flex-column">
-              <label v-if="loadingStatus === 'FAILURE'">
-                Generation failed.
-              </label>
-              <label v-else>
-                {{ loadingMessage }}
-              </label>
-              <p v-if="loadingStatus === 'SUCCESS'" class="small mb-0">
-                Download here: <a :href="resultURL">{{ resultURL }}</a>
-              </p>
-              <p v-else-if="loadingStatus === 'FAILURE'" class="small mb-0">
-                {{ loadingMessage }}
-              </p>
-              <p v-else-if="loadingStatus === 'CANCELED'" class="small mb-0">
-                Generation was canceled. You can submit another.
-                <a href="#" @click="loadingStatus = ''">Hide</a>
-              </p>
-              <p v-else class="small mb-0">
-                This process can take up to several minutes. Leave the page open!
-              </p>
+            <div
+              v-if="loadingStatus !== ''"
+              class="d-flex flex-nowrap align-items-center mb-4"
+            >
+              <b-icon
+                v-if="loadingStatus === 'SUCCESS'"
+                icon="check-circle-fill"
+                variant="success"
+                style="width: 2rem; height: 2rem;"
+                class="me-2"
+              />
+              <b-icon
+                v-else-if="loadingStatus === 'FAILURE' || loadingStatus === 'CANCELED'"
+                variant="danger"
+                icon="exclamation-circle-fill"
+                style="width: 2rem; height: 2rem;"
+                class="me-2"
+              />
+              <b-spinner
+                v-else
+                style="width: 2rem; height: 2rem;"
+                variant="success"
+                class="me-2"
+              />
+              <div class="flex-column">
+                <label v-if="loadingStatus === 'FAILURE'">
+                  Generation failed.
+                </label>
+                <label v-else>
+                  {{ loadingMessage }}
+                </label>
+                <p v-if="loadingStatus === 'SUCCESS'" class="small mb-0">
+                  Download here: <a :href="resultURL">{{ resultURL }}</a>
+                </p>
+                <p v-else-if="loadingStatus === 'FAILURE'" class="small mb-0">
+                  {{ loadingMessage }}
+                </p>
+                <p v-else-if="loadingStatus === 'CANCELED'" class="small mb-0">
+                  Generation was canceled. You can submit another.
+                  <a href="#" @click="loadingStatus = ''">Hide</a>
+                </p>
+                <p v-else class="small mb-0">
+                  This process can take up to several minutes. Leave the page open!
+                </p>
+              </div>
             </div>
           </div>
         </div>
+      </form>
+    </div>
+    <footer class="container-fluid footer">
+      <div class="container d-flex justify-content-center text-center px-5">
+        <p class="text-muted mx-3 mb-0">(C) 2021 UAVCAN</p>
+        <a class="text-muted mx-3 mb-0" href="https://github.com/UAVCAN/nunaweb">Source</a>
+        <a class="text-muted mx-3 mb-0" href="https://nunavut.readthedocs.io/en/latest/README.html">Nunavut Docs</a>
+        <a class="text-muted mx-3 mb-0" href="https://uavcan.org">UAVCAN</a>
       </div>
-    </form>
+    </footer>
   </div>
 </template>
 
@@ -309,5 +324,23 @@ a.disabled {
   color: gray;
   /* And disable the pointer events */
   pointer-events: none;
+}
+
+.footer {
+  padding: 1rem;
+  background-color: #EEE;
+}
+
+.text-muted {
+  color: #AAA;
+  text-decoration: none;
+}
+
+a.text-muted:hover {
+  text-decoration: underline;
+}
+
+.noline {
+  text-decoration: none;
 }
 </style>
