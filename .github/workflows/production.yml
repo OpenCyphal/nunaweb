@@ -1,0 +1,105 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - cicd
+
+jobs:
+  nunaweb-proxy:
+    name: Build nunaweb-proxy container
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Retrieve repository
+        uses: actions/checkout@v1
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: deployment
+          file: deployment/Dockerfile
+          push: true
+          tags: uavcan/nunaweb-proxy:latest
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+
+  nunaweb-server:
+    name: Build nunaweb-server container
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Retrieve repository
+        uses: actions/checkout@v1
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: nunaserver
+          file: nunaserver/Dockerfile
+          push: true
+          tags: uavcan/nunaweb-server:latest
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+
+  nunaweb-web:
+    name: Build nunaweb-web container
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Retrieve repository
+        uses: actions/checkout@v1
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: nunaweb
+          file: nunaweb/Dockerfile
+          push: true
+          tags: uavcan/nunaweb-web:latest
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
