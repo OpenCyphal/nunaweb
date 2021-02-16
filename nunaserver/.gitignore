@@ -4,8 +4,10 @@
 
 ### Flask ###
 instance/*
-static/
-uploads/
+static/*
+!static/.gitkeep
+uploads/*
+!uploads/.gitkeep
 logs/
 nunaserver.log
 !instance/.gitignore
