@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+  proxy:
+    image: uavcan/nunaweb-proxy:latest
+    restart: always
+    ports:
+      - "80:8080"
+    volumes:
+      - static:/var/www/static/api/static
+  celery:
+    image: uavcan/nunaweb-server:latest
+    environment:
+      - CELERY_BROKER_URL=redis://redis
+      - CELERY_RESULT_BACKEND=redis://redis
+      - NS_UPLOAD_FOLDER=/nunaserver/uploads
+      - NS_REDIS_RESULT=redis://redis
+      - NS_REDIS_BROKER=redis://redis:6379/0
+      - NS_WORK_FOLDER=/nunaserver/uploads
+      - NS_STATIC_FOLDER=/nunaserver/static
+      - NS_STATIC_SERVER_URL=http://nunaweb.uavcan.org/api/static  # Set to URL
+      - NS_LOG_LEVEL=40
+    volumes:
+      - static:/nunaserver/static
+    command: [ "celery", "-A", "nunaserver.generator", "worker", "--loglevel=info" ]
+  nunaserver:
+    image: uavcan/nunaweb-server:latest
+    environment:
+      - NS_UPLOAD_FOLDER=/nunaserver/uploads
+      - NS_REDIS_RESULT=redis://redis
+      - NS_REDIS_BROKER=redis://redis:6379/0
+      - NS_WORK_FOLDER=/nunaserver/uploads
+      - NS_STATIC_FOLDER=/nunaserver/static
+      - NS_STATIC_SERVER_URL=http://nunaweb.uavcan.org/api/static  # Set to URL
+      - NS_LOG_LEVEL=40
+    command: [ "gunicorn", "-w 4", "-b 0.0.0.0:8080", "nunaserver.wsgi:app" ]
+  nunaweb:
+    image: uavcan/nunaweb-web:latest
+    environment:
+      - API_URL="http://nunaweb.uavcan.org/api/"                   # Set to URL; see also /nunaweb/Dockerfile
+      - HOST=nunaweb
+      - PORT=8080
+    command: [ "npm", "run", "start" ]
+  redis:
+    image: redis:latest
+
+volumes:
+  static:

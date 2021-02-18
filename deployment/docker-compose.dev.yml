@@ -5,7 +5,7 @@ services:
     image: uavcan/nunaweb-proxy:latest
     restart: always
     ports:
-      - 80:80
+      - "80:8080"
     volumes:
       - static:/var/www/static/api/static
   celery:
@@ -34,7 +34,7 @@ services:
       - NS_MINIO_ACCESS_KEY=nunaweb
       - NS_MINIO_SECRET_KEY=supersecurepassword
       - NS_LOG_LEVEL=40
-    command: [ "gunicorn", "-w 4", "-b 0.0.0.0:8000", "nunaserver.wsgi:app" ]
+    command: [ "gunicorn", "-w 4", "-b 0.0.0.0:8080", "nunaserver.wsgi:app" ]
   nunaweb:
     image: uavcan/nunaweb-web:latest
   minio:
