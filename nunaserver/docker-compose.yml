@@ -40,8 +40,7 @@ services:
       - ./data:/data
     network_mode: host
     environment:
-      # Minio instance not accessible to outside,
-      # but it's still a good idea to change
+      # CHANGE THIS
       MINIO_ROOT_USER: nunaweb
       MINIO_ROOT_PASSWORD: supersecurepassword
     command: server /data

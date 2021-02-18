@@ -182,5 +182,5 @@ def generate_dsdl(
         "total": len(namespaces),
         "command": command,
         "status": "Complete!",
-        "result": f"{settings.MINIO_URL}/results/{zipfile_name}",
+        "result": f"{settings.MINIO_RESULTS}/{zipfile_name}",
     }
