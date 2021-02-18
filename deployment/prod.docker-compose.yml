@@ -14,9 +14,6 @@ services:
     build:
       context: ..
       dockerfile: deployment/Dockerfile.server
-    volumes:
-      - ../nunaserver:/nunaserver
-      - /tmp:/tmp
     environment:
       - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
@@ -33,9 +30,6 @@ services:
     build:
       context: ..
       dockerfile: deployment/Dockerfile.server
-    volumes:
-      - ../nunaserver:/nunaserver
-      - /tmp:/tmp
     environment:
       - NS_UPLOAD_FOLDER=/nunaserver/uploads
       - NS_REDIS_RESULT=redis://redis
