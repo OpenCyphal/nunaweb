@@ -1,10 +1,13 @@
 version: "3"
+
 services:
   proxy:
     image: uavcan/nunaweb-proxy:latest
     restart: always
     ports:
       - 80:80
+    volumes:
+      - static:/var/www/static/api/static
   celery:
     image: uavcan/nunaweb-server:latest
     environment:
@@ -17,6 +20,8 @@ services:
       - NS_REDIS_RESULT=redis://redis
       - NS_REDIS_BROKER=redis://redis:6379/0
       - NS_LOG_LEVEL=40
+    volumes:
+      - static:/nunaserver/static
     command: [ "celery", "-A", "nunaserver.generator", "worker", "--loglevel=info" ]
   nunaserver:
     image: uavcan/nunaweb-server:latest
@@ -48,3 +53,6 @@ services:
       retries: 3
   redis:
     image: redis:latest
+
+volumes:
+  static:
