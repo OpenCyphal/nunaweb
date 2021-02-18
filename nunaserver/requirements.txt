@@ -14,3 +14,7 @@ redis
 # Nunavut
 nunavut
 pydsdl
+
+# MinIO
+minio
+flask-minio

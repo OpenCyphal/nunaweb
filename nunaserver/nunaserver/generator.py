@@ -3,6 +3,7 @@ Use the nunavut Python library to actually generate
 the code.
 """
 import uuid
+import os
 import tempfile
 import zipfile
 import logging
@@ -16,7 +17,8 @@ from nunavut.jinja import DSDLCodeGenerator
 from nunaserver import settings
 from nunaserver.tasks import celery
 from nunaserver.logging import init_logging
-from nunaserver.utils.archive_utils import zipdir, fetch_remote_namespace
+from nunaserver.minio_connection import storage
+from nunaserver.utils.archive_utils import zipdir, fetch_remote_namespace, unzip_to_directory
 
 init_logging()
 
@@ -24,8 +26,8 @@ init_logging()
 @celery.task(bind=True)
 def generate_dsdl(
     self,
+    build_uuid: str,
     urls: List[str],
-    arch_dir: str,
     target_lang: str,
     target_endian: str,
     flags: List[str],
@@ -33,6 +35,27 @@ def generate_dsdl(
     """
     Generate (transpile) the DSDL code.
     """
+
+    # Create working directory
+    arch_dir = Path(tempfile.mkdtemp(prefix="pyuavcan-cli-dsdl"))
+
+    # Get uploaded files from minio and unzip
+    objects = storage.list_objects(f"{build_uuid}", prefix="uploads/",
+                                   recursive=True)
+    for obj in objects:
+        # Create temp file for zip archive
+        _, file_path = tempfile.mkstemp(".zip", "dsdl")
+
+        # Save and unzip
+        data = storage.get_object(obj.bucket_name, obj.object_name.encode("utf-8"))
+        with open(file_path, 'wb') as file_data:
+            for d in data.stream(32*1024):
+                file_data.write(d)
+
+        unzip_to_directory(file_path, arch_dir)
+
+        # Delete zip file
+        os.unlink(file_path)
 
     # pylint: disable=invalid-name
     for c, url in enumerate(urls):
@@ -143,15 +166,21 @@ def generate_dsdl(
     # Zip result
     zipfile_name = f"nunavut_out-{uuid.uuid4()}.zip"
     zipf = zipfile.ZipFile(
-        Path(settings.OUT_FILE_FOLDER) / zipfile_name, "w", zipfile.ZIP_DEFLATED
+        f"/tmp/{zipfile_name}", "w", zipfile.ZIP_DEFLATED
     )
     zipdir(out_dir, zipf)
     zipf.close()
+
+    # Upload result
+    storage.fput_object(f"results",
+                        zipfile_name,
+                        f"/tmp/{zipfile_name}",
+                        os.stat(f"/tmp/{zipfile_name}").st_size)
 
     return {
         "current": len(namespaces),
         "total": len(namespaces),
         "command": command,
         "status": "Complete!",
-        "result": f"{settings.OUT_SERVER_URL}/{zipfile_name}",
+        "result": f"{settings.MINIO_URL}/results/{zipfile_name}",
     }

@@ -3,16 +3,17 @@ API endpoints for nunaserver.
 """
 import tempfile
 import os
+import uuid
 from pathlib import Path
 import flask
 from nunaserver import settings
+from nunaserver.minio_connection import storage
 from nunaserver.limiter import limiter
 from nunaserver.utils.archive_utils import fetch_remote_namespace, unzip_to_directory
 from nunaserver.generator import generate_dsdl
 from nunaserver.forms import UploadForm, ValidationError
 
 api = flask.Blueprint("api", __name__)
-
 
 @api.route("/", methods=["GET"])
 def root():
@@ -35,30 +36,25 @@ def upload():
 
     Takes multipart/form-data (obviously, because we have a file upload).
     """
-    arch_dir = Path(tempfile.mkdtemp(prefix="pyuavcan-cli-dsdl"))
+    build_uuid = str(uuid.uuid4())
+    storage.make_bucket(build_uuid)
 
     try:
         form = UploadForm(flask.request.form, flask.request.files)
     except ValidationError as error:
         return flask.jsonify(error.errors)
 
-    # Unzip files in route so we don't have to pass to Celery
-    # Max 32M = should be fast enough
     for file in form.archive_files:
-        # Create temp file for zip archive
-        _, file_path = tempfile.mkstemp(".zip", "dsdl")
+        size = os.fstat(file.fileno()).st_size
+        storage.put_object(
+            build_uuid, f"uploads/{file.filename}", file, size
+        )
 
-        # Save and unzip
-        file.save(file_path)
-        unzip_to_directory(file_path, arch_dir)
-
-        # Delete zip file
-        os.unlink(file_path)
 
     # Kick off Celery task to generate DSDL
     task = generate_dsdl.delay(
+        build_uuid,
         form.archive_urls,
-        str(arch_dir),
         form.target_lang,
         form.target_endian,
         form.flags,
