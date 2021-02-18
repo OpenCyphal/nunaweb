@@ -103,3 +103,24 @@ jobs:
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+
+
+  deploy:
+    name: Deploy images to production
+    runs-on: ubuntu-latest
+    needs: [ nunaweb-proxy, nunaweb-server, nunaweb-web ]
+    steps:
+      -
+        name: Retrieve repository
+        uses: actions/checkout@v1
+      - name: Pull new images from DockerHub
+        uses: JimCronqvist/action-ssh@master
+        with:
+          hosts: '${{ secrets.SSH_TARGET }}'
+          privatekey: ${{ secrets.SSH_KEY }}
+          debug: false
+          command: |
+            docker-compose stop
+            docker-compose down
+            docker rmi $(docker images -a -q)
+            docker-compose up -d
