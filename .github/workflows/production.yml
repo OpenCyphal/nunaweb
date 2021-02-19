@@ -3,7 +3,7 @@ name: Production Deployment
 on:
   push:
     branches:
-      - cicd
+      - main
 
 jobs:
   nunaweb-proxy:
