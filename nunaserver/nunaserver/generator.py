@@ -11,14 +11,20 @@ from typing import List
 from pathlib import Path
 from pydsdl import read_namespace
 from pydsdl._error import InvalidDefinitionError
+import nunavut
 from nunavut import build_namespace_tree
+from nunavut.generators import create_generators
 from nunavut.lang import LanguageContext
 from nunavut.jinja import DSDLCodeGenerator
 from nunaserver import settings
 from nunaserver.tasks import celery
 from nunaserver.logging import init_logging
 from nunaserver.minio_connection import storage
-from nunaserver.utils.archive_utils import zipdir, fetch_remote_namespace, unzip_to_directory
+from nunaserver.utils.archive_utils import (
+    zipdir,
+    fetch_remote_namespace,
+    unzip_to_directory,
+)
 
 init_logging()
 
@@ -40,16 +46,15 @@ def generate_dsdl(
     arch_dir = Path(tempfile.mkdtemp(prefix="pyuavcan-cli-dsdl"))
 
     # Get uploaded files from minio and unzip
-    objects = storage.list_objects(f"{build_uuid}", prefix="uploads/",
-                                   recursive=True)
+    objects = storage.list_objects(f"{build_uuid}", prefix="uploads/", recursive=True)
     for obj in objects:
         # Create temp file for zip archive
         _, file_path = tempfile.mkstemp(".zip", "dsdl")
 
         # Save and unzip
         data = storage.get_object(obj.bucket_name, obj.object_name.encode("utf-8"))
-        with open(file_path, 'wb') as file_data:
-            for d in data.stream(32*1024):
+        with open(file_path, "wb") as file_data:
+            for d in data.stream(32 * 1024):
                 file_data.write(d)
 
         unzip_to_directory(file_path, arch_dir)
@@ -160,22 +165,23 @@ def generate_dsdl(
         )
 
         # Generate code
-        generator = DSDLCodeGenerator(root_namespace)
+        generator, support_generator = create_generators(root_namespace)
         generator.generate_all()
+        support_generator.generate_all()
 
     # Zip result
     zipfile_name = f"nunavut_out-{uuid.uuid4()}.zip"
-    zipf = zipfile.ZipFile(
-        f"/tmp/{zipfile_name}", "w", zipfile.ZIP_DEFLATED
-    )
+    zipf = zipfile.ZipFile(f"/tmp/{zipfile_name}", "w", zipfile.ZIP_DEFLATED)
     zipdir(out_dir, zipf)
     zipf.close()
 
     # Upload result
-    storage.fput_object(f"results",
-                        zipfile_name,
-                        f"/tmp/{zipfile_name}",
-                        os.stat(f"/tmp/{zipfile_name}").st_size)
+    storage.fput_object(
+        f"results",
+        zipfile_name,
+        f"/tmp/{zipfile_name}",
+        os.stat(f"/tmp/{zipfile_name}").st_size,
+    )
 
     return {
         "current": len(namespaces),

@@ -8,5 +8,5 @@ storage = Minio(
     settings.MINIO_URL,
     access_key=settings.MINIO_ACCESS,
     secret_key=settings.MINIO_SECRET,
-    secure=settings.MINIO_SECURE
+    secure=settings.MINIO_SECURE,
 )
