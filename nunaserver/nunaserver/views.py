@@ -15,6 +15,7 @@ from nunaserver.forms import UploadForm, ValidationError
 
 api = flask.Blueprint("api", __name__)
 
+
 @api.route("/", methods=["GET"])
 def root():
     """
@@ -46,10 +47,7 @@ def upload():
 
     for file in form.archive_files:
         size = os.fstat(file.fileno()).st_size
-        storage.put_object(
-            build_uuid, f"uploads/{file.filename}", file, size
-        )
-
+        storage.put_object(build_uuid, f"uploads/{file.filename}", file, size)
 
     # Kick off Celery task to generate DSDL
     task = generate_dsdl.delay(
