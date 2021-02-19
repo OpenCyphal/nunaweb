@@ -56,9 +56,8 @@ services:
     volumes:
       - ./data:/data
     environment:
-      # CHANGE THIS
-      MINIO_ROOT_USER: nunaweb
-      MINIO_ROOT_PASSWORD: supersecurepassword
+      - MINIO_ROOT_USER=nunaweb
+      - MINIO_ROOT_PASSWORD=supersecurepassword                 # Change 
     command: server /data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
