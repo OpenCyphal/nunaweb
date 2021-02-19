@@ -54,7 +54,7 @@ services:
     image: minio/minio:latest
     restart: always
     volumes:
-      - ./data:/data
+      - /var/lib/nunaweb:/data
     environment:
       - MINIO_ROOT_USER=nunaweb
       - MINIO_ROOT_PASSWORD=supersecurepassword                 # Change 
