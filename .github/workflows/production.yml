@@ -7,7 +7,7 @@ on:
 
 jobs:
   nunaweb-proxy:
-    name: Build nunaweb-proxy container
+    name: Build nunaweb-proxy image
     runs-on: ubuntu-latest
     steps:
       -
@@ -40,7 +40,7 @@ jobs:
 
 
   nunaweb-server:
-    name: Build nunaweb-server container
+    name: Build nunaweb-server image
     runs-on: ubuntu-latest
     steps:
       -
@@ -73,7 +73,7 @@ jobs:
 
 
   nunaweb-web:
-    name: Build nunaweb-web container
+    name: Build nunaweb-web image
     runs-on: ubuntu-latest
     steps:
       -
