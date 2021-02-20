@@ -28,6 +28,7 @@ services:
     image: uavcan/nunaweb-server:latest
     restart: always
     environment:
+      - CSRF_SECRET_KEY=csrf_secret
       - NS_UPLOAD_FOLDER=/nunaserver/uploads
       - NS_REDIS_RESULT=redis://redis
       - NS_REDIS_BROKER=redis://redis:6379/0
