@@ -8,6 +8,8 @@ import logging
 from pathlib import Path
 import flask
 from flask_cors import CORS
+from flask_seasurf import SeaSurf
+from flask_talisman import Talisman
 from nunaserver import settings
 from nunaserver.minio_connection import storage
 from nunaserver.limiter import limiter
@@ -24,7 +26,16 @@ app.config["MINIO_SECURE"] = settings.MINIO_SECURE
 
 limiter.init_app(app)
 CORS(app)
+app.secret_key = settings.CSRF_SECRET_KEY
+csrf = SeaSurf(app)
 
+SELF = "'self'"
+talisman = Talisman(
+    app,
+    content_security_policy = {
+        'default-src': SELF
+    }
+)
 # Setup celery
 init_celery(celery, app)
 
