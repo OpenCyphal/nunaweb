@@ -29,6 +29,7 @@ services:
     image: uavcan/nunaweb-server:latest
     restart: always
     environment:
+      - CORS_ALLOWED_DOAMINS=https://nunaweb.uavcan.org
       - CSRF_SECRET_KEY=csrf_secret
       - NS_UPLOAD_FOLDER=/nunaserver/uploads
       - NS_REDIS_RESULT=redis://redis

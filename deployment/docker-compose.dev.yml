@@ -11,7 +11,6 @@ services:
   celery:
     image: uavcan/nunaweb-server:latest
     environment:
-      - CSRF_SECRET_KEY=csrf_secret
       - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
       - NS_MINIO_URL=minio:9000
@@ -27,6 +26,8 @@ services:
   nunaserver:
     image: uavcan/nunaweb-server:latest
     environment:
+      - CORS_ALLOWED_DOAMINS=*
+      - CSRF_SECRET_KEY=csrf_secret
       - NS_UPLOAD_FOLDER=/nunaserver/uploads
       - NS_REDIS_RESULT=redis://redis
       - NS_REDIS_BROKER=redis://redis:6379/0
