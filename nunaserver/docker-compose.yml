@@ -1,5 +1,13 @@
 version: "3"
 services:
+  flower:
+    image: python:latest
+    network_mode: host
+    environment:
+      - LISTEN_PORT=8089
+      - NS_REDIS_BROKER=redis://localhost:6379/0
+      - BASIC_AUTH_TOKENS=admin:12345678
+    command: "bash -c 'pip3 install flower && flower $$NS_REDIS_BROKER --port=$$LISTEN_PORT --address 0.0.0.0 --basic_auth=$$BASIC_AUTH_TOKENS'"
   celery:
     image: python:latest
     volumes:
