@@ -1,7 +1,9 @@
-# Flask for serving (obviously) + CORS api
+# Flask for serving (obviously) + CORS api + flask security plugins
 flask
 flask-cors
 flask-limiter
+flask-seasurf
+flask-talisman
 gunicorn
 
 # Requests for downloading external repos
