@@ -8,6 +8,8 @@ import logging
 from pathlib import Path
 import flask
 from flask_cors import CORS
+from minio.commonconfig import Filter, ENABLED
+from minio.lifecycleconfig import LifecycleConfig, Expiration, Rule
 from nunaserver import settings
 from nunaserver.minio_connection import storage
 from nunaserver.limiter import limiter
@@ -47,6 +49,18 @@ if not storage.bucket_exists("results"):
         ],
     }
     storage.set_bucket_policy("results", json.dumps(policy))
+
+    config = LifecycleConfig(
+        [
+            Rule(
+                ENABLED,
+                rule_filter=Filter(prefix="*"),
+                rule_id="delete_rule_results",
+                expiration=Expiration(days=30),
+            ),
+        ],
+    )
+    storage.set_bucket_lifecycle("results", config)
 
 app.register_blueprint(api)
 
