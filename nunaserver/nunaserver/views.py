@@ -6,6 +6,8 @@ import os
 import uuid
 from pathlib import Path
 import flask
+from minio.commonconfig import Filter, ENABLED
+from minio.lifecycleconfig import LifecycleConfig, Expiration, Rule
 from nunaserver import settings
 from nunaserver.minio_connection import storage
 from nunaserver.limiter import limiter
@@ -39,6 +41,17 @@ def upload():
     """
     build_uuid = str(uuid.uuid4())
     storage.make_bucket(build_uuid)
+    config = LifecycleConfig(
+        [
+            Rule(
+                ENABLED,
+                rule_filter=Filter(prefix="uploads/"),
+                rule_id=f"delete_rule_{build_uuid}",
+                expiration=Expiration(days=30),
+            ),
+        ],
+    )
+    storage.set_bucket_lifecycle(build_uuid, config)
 
     try:
         form = UploadForm(flask.request.form, flask.request.files)
