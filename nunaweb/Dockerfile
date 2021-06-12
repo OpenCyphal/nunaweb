@@ -1,4 +1,4 @@
-FROM node:slim
+FROM node:12-slim
 EXPOSE 8080
 COPY . /nunaweb
 WORKDIR /nunaweb
