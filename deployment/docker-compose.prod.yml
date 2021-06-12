@@ -9,6 +9,11 @@ services:
       - "443:443"
     volumes:
       - /etc/letsencrypt/:/etc/letsencrypt
+    depends_on:
+      nunaserver:
+        condition: service_healthy
+      nunaweb:
+        condition: service_started
 
   celery:
     image: uavcan/nunaweb-server:latest
@@ -38,6 +43,16 @@ services:
       - NS_MINIO_SECRET_KEY=supersecurepassword
       - NS_LOG_LEVEL=40
     command: [ "gunicorn", "-w 4", "-b 0.0.0.0:8080", "nunaserver.wsgi:app" ]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+    depends_on:
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   nunaweb:
     image: uavcan/nunaweb-web:latest
@@ -46,6 +61,14 @@ services:
       - HOST=nunaweb
       - PORT=8080
     command: [ "npm", "run", "start" ]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+    depends_on:
+      nunaserver:
+        condition: service_healthy
 
   redis:
     image: redis:latest
@@ -58,7 +81,7 @@ services:
       - /var/lib/nunaweb:/data
     environment:
       - MINIO_ROOT_USER=nunaweb
-      - MINIO_ROOT_PASSWORD=supersecurepassword                 # Change 
+      - MINIO_ROOT_PASSWORD=supersecurepassword                 # Change
     command: server /data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
