@@ -140,7 +140,7 @@ def generate_dsdl(
                 namespace, extra_includes, allow_unregulated_fixed_port_id=False
             )
         except InvalidDefinitionError as error:
-            text = str(error).replace(arch_dir, "")
+            text = str(error).replace(str(arch_dir), "")
             raise RuntimeError(f"{text}") from error
 
         # Select target language and configure context
