@@ -13,7 +13,7 @@ redis==3.5.3
 
 # Nunavut
 nunavut==1.2.1
-pydsdl==1.12.0
+pydsdl==1.12.1
 
 # MinIO
 minio==7.0.3
