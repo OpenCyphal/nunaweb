@@ -157,11 +157,12 @@
             </div>
           </div>
         </div>
+        <Description />
       </form>
     </div>
     <footer class="container-fluid footer">
       <div class="container d-flex justify-content-center text-center px-5">
-        <p class="text-muted mx-3 mb-0">(C) 2021 UAVCAN</p>
+        <p class="text-muted mx-3 mb-0">© 2021 UAVCAN Consortium</p>
         <a class="text-muted mx-3 mb-0" href="https://github.com/UAVCAN/nunaweb">Source</a>
         <a class="text-muted mx-3 mb-0" href="https://nunavut.readthedocs.io/en/latest/README.html">Nunavut Docs</a>
         <a class="text-muted mx-3 mb-0" href="https://uavcan.org">UAVCAN</a>

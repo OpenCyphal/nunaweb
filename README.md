@@ -9,8 +9,7 @@ and hit Submit. The web UI will display the commands needed to generate
 the code with the specified settings, and then compile your namespaces into
 the specified target language.
 
-This application has not yet been deployed to production; when it has, a
-link will be added.
+The application is deployed to production at https://nunaweb.uavcan.org.
 
 ## Setting up a development environment
 
