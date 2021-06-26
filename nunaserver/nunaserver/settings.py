@@ -37,4 +37,4 @@ LOG_LEVEL = int(os.environ.get("NS_LOG_LEVEL") or logging.WARNING)
 CSRF_SECRET_KEY = os.environ.get("CSRF_SECRET_KEY") or "123abc"
 
 # CORs
-CORS_ALLOWED_DOAMINS = os.environ.get("CORS_ALLOWED_DOAMINS") or "*"
+CORS_ALLOWED_DOAMINS = os.environ.get("CORS_ALLOWED_DOMAINS") or "*"
