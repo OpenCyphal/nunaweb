@@ -158,6 +158,7 @@
           </div>
         </div>
         <Description />
+        <LegalNotices />
       </form>
     </div>
     <footer class="container-fluid footer">
