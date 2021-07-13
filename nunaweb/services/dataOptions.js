@@ -19,6 +19,10 @@ export const languages = [
     value: 'c'
   },
   {
+    name: 'HTML Documentation',
+    value: 'html'
+  },
+  {
     name: 'C++ (coming soon)',
     value: 'c++',
     disabled: true
