@@ -22,7 +22,7 @@ MINIO_SECURE = bool(os.environ.get("NS_MINIO_SECURE")) or False
 
 # Rate limiting (set as needed)
 # These defaults might be too high; not sure
-UPLOAD_LIMITS = "200/day;20/minute"
+UPLOAD_LIMITS = "30/day;10/minute"
 UPLOAD_SIZE_MAX = 16 * 1024 * 1024  # 16 MB max
 REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024  # 8 MB max
 
