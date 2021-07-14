@@ -80,6 +80,18 @@ if not storage.bucket_exists("docs"):
     }
     storage.set_bucket_policy("docs", json.dumps(policy))
 
+    config = LifecycleConfig(
+        [
+            Rule(
+                ENABLED,
+                rule_filter=Filter(prefix="*"),
+                rule_id="delete_rule_results",
+                expiration=Expiration(days=30),
+            ),
+        ],
+    )
+    storage.set_bucket_lifecycle("docs", config)
+
 
 app.register_blueprint(api)
 
