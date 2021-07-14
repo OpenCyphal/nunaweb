@@ -9,7 +9,7 @@ import { APIError } from '~/services/errors.js';
 // Nuxt configured base API backend URL
 const BASE_URL = process.env.apiURL;
 
-export function createUploadFormData(nsRepos, targetLang, targetEndian, flags) {
+export function createUploadFormData(nsRepos, targetLang, targetEndian, flags, docURL) {
   // Create a FormData object to add data to
   // since API takes multipart/form-data
   const formData = new FormData();
@@ -30,6 +30,7 @@ export function createUploadFormData(nsRepos, targetLang, targetEndian, flags) {
 
   formData.append('target_lang', targetLang);
   formData.append('target_endian', targetEndian);
+  formData.append('doc_url', docURL);
 
   for (const flag of flags) {
     if (flag.value === true) {

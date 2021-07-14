@@ -2,6 +2,7 @@
 Flask-WTF Forms for API form validation.
 Used to parse and validate request data on API endpoints (e.g. /upload).
 """
+import uuid
 
 # pylint: disable=too-few-public-methods
 class ValidationError(Exception):
@@ -41,6 +42,11 @@ class UploadForm:
             self.target_endian = form["target_endian"]
         except KeyError:
             errors["target_endian"] = "target_endian attribute not found."
+
+        try:
+            self.doc_url = form["doc_url"]
+        except KeyError:
+            self.doc_url = f"nunavut-docs-{uuid.uuid4()}"
 
         self.flags = form.getlist("flags")
 
