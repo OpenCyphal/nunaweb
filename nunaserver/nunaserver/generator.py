@@ -12,6 +12,7 @@ from pathlib import Path
 from pydsdl import read_namespace
 from pydsdl._error import InvalidDefinitionError
 import nunavut
+import minio
 from nunavut import build_namespace_tree
 from nunavut.generators import create_generators
 from nunavut.lang import LanguageContext
@@ -37,6 +38,7 @@ def generate_dsdl(
     target_lang: str,
     target_endian: str,
     flags: List[str],
+    doc_url: str,
 ):
     """
     Generate (transpile) the DSDL code.
@@ -169,24 +171,53 @@ def generate_dsdl(
         generator.generate_all()
         support_generator.generate_all()
 
-    # Zip result
-    zipfile_name = f"nunavut_out-{uuid.uuid4()}.zip"
-    zipf = zipfile.ZipFile(f"/tmp/{zipfile_name}", "w", zipfile.ZIP_DEFLATED)
-    zipdir(out_dir, zipf)
-    zipf.close()
+    if target_lang == "html":
+        # Upload generated files
+        for file in out_dir.glob("**/*"):
+            if file.is_file():
+                rel_path = doc_url / file.relative_to(out_dir)
+                try:
+                    if storage.stat_object("docs", f"{rel_path}"):
+                        raise RuntimeError("Specified doc URL is already taken")
+                except minio.error.S3Error:
+                    pass
 
-    # Upload result
-    storage.fput_object(
-        f"results",
-        zipfile_name,
-        f"/tmp/{zipfile_name}",
-        os.stat(f"/tmp/{zipfile_name}").st_size,
-    )
+                storage.fput_object(
+                    "docs",
+                    str(rel_path),
+                    str(file.absolute()),
+                    os.stat(file.absolute()).st_size,
+                )
+        return {
+            "current": len(namespaces),
+            "total": len(namespaces),
+            "command": command,
+            "type": "htmldoc",
+            "status": "Complete!",
+            "result": [
+                f"{settings.MINIO_DOCS}/{doc_url}/{str(ns).split('/')[-1]}/index.html" for ns in namespaces
+            ],
+        }
+    else:
+        # Zip result
+        zipfile_name = f"nunavut_out-{uuid.uuid4()}.zip"
+        zipf = zipfile.ZipFile(f"/tmp/{zipfile_name}", "w", zipfile.ZIP_DEFLATED)
+        zipdir(out_dir, zipf)
+        zipf.close()
 
-    return {
-        "current": len(namespaces),
-        "total": len(namespaces),
-        "command": command,
-        "status": "Complete!",
-        "result": f"{settings.MINIO_RESULTS}/{zipfile_name}",
-    }
+        # Upload result
+        storage.fput_object(
+            "results",
+            zipfile_name,
+            f"/tmp/{zipfile_name}",
+            os.stat(f"/tmp/{zipfile_name}").st_size,
+        )
+
+        return {
+            "current": len(namespaces),
+            "total": len(namespaces),
+            "command": command,
+            "type": "generic",
+            "status": "Complete!",
+            "result": f"{settings.MINIO_RESULTS}/{zipfile_name}",
+        }

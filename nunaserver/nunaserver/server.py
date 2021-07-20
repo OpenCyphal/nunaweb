@@ -62,6 +62,37 @@ if not storage.bucket_exists("results"):
     )
     storage.set_bucket_lifecycle("results", config)
 
+
+# Setup minio docs bucket
+# and set public access
+if not storage.bucket_exists("docs"):
+    storage.make_bucket("docs")
+    policy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {"AWS": "*"},
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::docs/*",
+            },
+        ],
+    }
+    storage.set_bucket_policy("docs", json.dumps(policy))
+
+    config = LifecycleConfig(
+        [
+            Rule(
+                ENABLED,
+                rule_filter=Filter(prefix="*"),
+                rule_id="delete_rule_results",
+                expiration=Expiration(days=30),
+            ),
+        ],
+    )
+    storage.set_bucket_lifecycle("docs", config)
+
+
 app.register_blueprint(api)
 
 if __name__ == "__main__":

@@ -15,13 +15,14 @@ ALLOWED_EXTENSIONS = {"zip"}
 # Minio instance
 MINIO_URL = os.environ.get("NS_MINIO_URL") or "localhost:9000"
 MINIO_RESULTS = os.environ.get("NS_MINIO_RESULTS") or "http://localhost:9000/results"
+MINIO_DOCS = os.environ.get("NS_MINIO_DOCS") or "http://localhost:9000/docs"
 MINIO_ACCESS = os.environ.get("NS_MINIO_ACCESS_KEY") or None
 MINIO_SECRET = os.environ.get("NS_MINIO_SECRET_KEY") or None
 MINIO_SECURE = bool(os.environ.get("NS_MINIO_SECURE")) or False
 
 # Rate limiting (set as needed)
 # These defaults might be too high; not sure
-UPLOAD_LIMITS = "200/day;20/minute"
+UPLOAD_LIMITS = "30/day;10/minute"
 UPLOAD_SIZE_MAX = 16 * 1024 * 1024  # 16 MB max
 REMOTE_NS_SIZE_MAX = 4 * 1024 * 1024  # 8 MB max
 

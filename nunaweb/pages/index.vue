@@ -75,6 +75,13 @@
             </option>
           </select>
         </div>
+        <div v-if="selectedLang === 'html'" class="mt-3">
+            <input
+                class="form-control"
+                v-model="docURL"
+                placeholder="Enter a name to host docs (or leave empty for autogen)"
+            />
+        </div>
         <div class="align-items-start mt-3" style="text-align: left !important">
           <div v-for="flag in flags" :key="flag.flag" class="form-check">
             <input
@@ -140,9 +147,18 @@
                 <label v-else>
                   {{ loadingMessage }}
                 </label>
-                <p v-if="loadingStatus === 'SUCCESS'" class="small mb-0">
+                <p
+                    v-if="resultType === 'generic' && loadingStatus === 'SUCCESS'"
+                    class="small mb-0"
+                >
                   Download here: <a :href="resultURL">{{ resultURL }}</a>
                 </p>
+                <div v-else-if="resultType === 'htmldoc' && loadingStatus === 'SUCCESS'">
+                    <p class="small mb-0">Generated docs here:</p>
+                    <p v-for="url in resultURL" :key="url" class="small mb-0">
+                        <a :href="url">{{ url }}</a>
+                    </p>
+                </div>
                 <p v-else-if="loadingStatus === 'FAILURE'" class="small mb-0">
                   {{ loadingMessage }}
                 </p>
@@ -183,6 +199,8 @@ export default {
       loadingStatus: '',
       loadingMessage: '',
       resultURL: '',
+      resultType: '',
+      docURL: '',
       additionalReposOpen: false,
       command: '',
       loadingTimeout: null,
@@ -257,7 +275,8 @@ export default {
         Object.values(this.nsFiles),
         this.selectedLang,
         this.selectedEndian,
-        this.flags
+        this.flags,
+        this.docURL
       );
 
       this.loadingStatus = 'PENDING';
@@ -289,6 +308,8 @@ export default {
         }
 
         if (data.state === 'SUCCESS') {
+          console.log(data)
+          this.resultType = data.type;
           this.resultURL = data.result;
           clearInterval(this.loadingTimeout);
         } else if (data.state === 'FAILURE') {

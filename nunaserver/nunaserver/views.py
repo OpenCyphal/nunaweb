@@ -69,6 +69,7 @@ def upload():
         form.target_lang,
         form.target_endian,
         form.flags,
+        form.doc_url
     )
 
     return (
@@ -103,6 +104,7 @@ def taskstatus(task_id):
                 "total": task.info.get("total", 1),
                 "status": task.info.get("status", ""),
                 "command": task.info.get("command", ""),
+                "type": task.info.get("type", ""),
             }
             if "result" in task.info:
                 response["result"] = task.info["result"]
