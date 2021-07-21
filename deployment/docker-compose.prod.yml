@@ -62,7 +62,7 @@ services:
       - PORT=8080
     command: [ "npm", "run", "start" ]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      test: ["CMD", "curl", "-f", "http://nunaweb:8080/"]
       interval: 1s
       timeout: 3s
       retries: 60
