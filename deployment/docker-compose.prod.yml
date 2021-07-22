@@ -23,6 +23,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis
       - NS_MINIO_URL=minio:9000
       - NS_MINIO_RESULTS=https://nunaweb.uavcan.org/api/storage/results # Change
+      - NS_MINIO_DOCS=https://nunaweb.uavcan.org/api/storage/docs # Change
       - NS_MINIO_ACCESS_KEY=nunaweb
       - NS_MINIO_SECRET_KEY=supersecurepassword
       - NS_REDIS_RESULT=redis://redis
@@ -39,6 +40,7 @@ services:
       - NS_REDIS_BROKER=redis://redis:6379/0
       - NS_MINIO_URL=minio:9000
       - NS_MINIO_RESULTS=https://nunaweb.uavcan.org/api/storage/results # Change
+      - NS_MINIO_DOCS=https://nunaweb.uavcan.org/api/storage/docs # Change
       - NS_MINIO_ACCESS_KEY=nunaweb
       - NS_MINIO_SECRET_KEY=supersecurepassword
       - NS_LOG_LEVEL=40
