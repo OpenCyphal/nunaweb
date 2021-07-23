@@ -186,7 +186,7 @@ def generate_dsdl(
                     "docs",
                     str(rel_path),
                     str(file.absolute()),
-                    os.stat(file.absolute()).st_size,
+                    content_type="text/html"
                 )
         return {
             "current": len(namespaces),
@@ -210,7 +210,6 @@ def generate_dsdl(
             "results",
             zipfile_name,
             f"/tmp/{zipfile_name}",
-            os.stat(f"/tmp/{zipfile_name}").st_size,
         )
 
         return {
