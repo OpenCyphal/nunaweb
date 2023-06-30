@@ -24,6 +24,14 @@ app.config["MINIO_ACCESS_KEY"] = settings.MINIO_ACCESS
 app.config["MINIO_SECRET_KEY"] = settings.MINIO_SECRET
 app.config["MINIO_SECURE"] = settings.MINIO_SECURE
 
+@app.after_request
+def add_header(response):
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS,POST,PUT"
+    response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+return response
+
 limiter.init_app(app)
 CORS(app)
 

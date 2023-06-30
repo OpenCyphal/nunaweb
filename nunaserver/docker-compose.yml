@@ -1,7 +1,7 @@
 version: "3"
 services:
   celery:
-    image: python:latest
+    image: python:3.9
     volumes:
       - ./:/nunaserver
       - /tmp:/tmp
@@ -18,7 +18,7 @@ services:
       - NS_LOG_LEVEL=20
     command: "bash -c 'cd /nunaserver && pip3 install -r requirements.txt && celery -A nunaserver.generator worker --loglevel=info'"
   nunaserver:
-    image: python:latest
+    image: python:3.9
     volumes:
       - ./:/nunaserver
       - /tmp:/tmp
