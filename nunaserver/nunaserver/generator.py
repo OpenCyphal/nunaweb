@@ -14,7 +14,7 @@ from pydsdl._error import InvalidDefinitionError
 import nunavut
 import minio
 from nunavut import build_namespace_tree
-from nunavut.generators import create_generators
+from nunavut._generators import create_default_generators
 from nunavut.lang import LanguageContext
 from nunavut.jinja import DSDLCodeGenerator
 from nunaserver import settings
