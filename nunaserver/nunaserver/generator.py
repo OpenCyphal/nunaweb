@@ -6,17 +6,13 @@ import uuid
 import os
 import tempfile
 import zipfile
-import logging
+import minio
 from typing import List
 from pathlib import Path
 from pydsdl import read_namespace
 from pydsdl._error import InvalidDefinitionError
-import nunavut
-import minio
 from nunavut import build_namespace_tree
 from nunavut._generators import create_default_generators
-from nunavut.lang import LanguageContext
-from nunavut.jinja import DSDLCodeGenerator
 from nunaserver import settings
 from nunaserver.tasks import celery
 from nunaserver.logging import init_logging
@@ -26,8 +22,13 @@ from nunaserver.utils.archive_utils import (
     fetch_remote_namespace,
     unzip_to_directory,
 )
+from nunavut.lang import (
+    Language,
+    LanguageContextBuilder,
+)
 
 init_logging()
+
 
 # pylint: disable=too-many-locals,too-many-arguments
 @celery.task(bind=True)
@@ -146,28 +147,32 @@ def generate_dsdl(
             raise RuntimeError(f"{text}") from error
 
         # Select target language and configure context
-        language_options = {}
-        language_options["target_endianness"] = target_endian
-        language_options["omit_float_serialization_support"] = (
-            "--omit-float-serialization-support" in flags
-        )
-        language_options["enable_serialization_asserts"] = (
-            "--enable-serialization-asserts" in flags
-        )
-        lang_context = LanguageContext(
-            target_lang,
-            omit_serialization_support_for_target="--omit-serialization-support"
-            in flags,
-            language_options=language_options,
+        language_options = {
+            "target_endianness": target_endian,
+            "omit_float_serialization_support": (
+                "--omit-float-serialization-support" in flags
+            ),
+            "enable_serialization_asserts": ("--enable-serialization-asserts" in flags),
+            "enable_override_variable_array_capacity": (
+                "--enable-override-variable-array-capacity" in flags
+            ),
+        }
+
+        language_context = (
+            LanguageContextBuilder(include_experimental_languages=True)
+            .set_target_language(target_lang)
+            .set_target_language_configuration_override(
+                Language.WKCV_LANGUAGE_OPTIONS, language_options
+            )
+            .create()
         )
 
-        # Build namespace tree
         root_namespace = build_namespace_tree(
-            compound_types, namespace, out_dir, lang_context
+            compound_types, namespace, str(out_dir), language_context
         )
 
         # Generate code
-        generator, support_generator = create_generators(root_namespace)
+        generator, support_generator = create_default_generators(root_namespace)
         generator.generate_all()
         support_generator.generate_all()
 
@@ -186,7 +191,7 @@ def generate_dsdl(
                     "docs",
                     str(rel_path),
                     str(file.absolute()),
-                    content_type="text/html"
+                    content_type="text/html",
                 )
         return {
             "current": len(namespaces),
@@ -195,7 +200,8 @@ def generate_dsdl(
             "type": "htmldoc",
             "status": "Complete!",
             "result": [
-                f"{settings.MINIO_DOCS}/{doc_url}/{str(ns).split('/')[-1]}/index.html" for ns in namespaces
+                f"{settings.MINIO_DOCS}/{doc_url}/{str(ns).split('/')[-1]}/index.html"
+                for ns in namespaces
             ],
         }
     else:
