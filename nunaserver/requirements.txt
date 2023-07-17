@@ -8,12 +8,11 @@ gunicorn==20.1.0
 requests==2.25.1
 
 # Celery
-celery==5.1.0
+celery==5.3.1
 redis==4.4.4
 
 # Nunavut
-nunavut==2.1.1
-pydsdl==1.18
+nunavut~=2.1.1
 
 # MinIO
 minio==7.0.3
