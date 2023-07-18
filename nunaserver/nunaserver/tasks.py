@@ -11,9 +11,7 @@ def make_celery(name):
     Create a Celery wrapper for use in running
     background tasks.
     """
-    celery_inst = Celery(
-        name, backend=settings.CELERY_RESULT_BACKEND, broker=settings.CELERY_BROKER_URL
-    )
+    celery_inst = Celery(name, backend=settings.CELERY_RESULT_BACKEND, broker=settings.CELERY_BROKER_URL)
 
     return celery_inst
 

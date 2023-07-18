@@ -3,7 +3,7 @@
 line-length = 120
 target-version = ['py311']
 include = '''
-(src/.*\.pyi?$)
+(nunaserver/.*\.pyi?$)
 |
 (noxfile.py$)
 '''

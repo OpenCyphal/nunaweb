@@ -81,13 +81,9 @@ def generate_dsdl(
     inner = [d for d in Path(arch_dir).iterdir() if d.is_dir()]
     namespaces = []
     for path in inner:
-        subnss = [
-            d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")
-        ]
+        subnss = [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
         if len(subnss) > 0:
-            namespaces.extend(
-                [d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")]
-            )
+            namespaces.extend([d for d in path.iterdir() if d.is_dir() and not d.name.startswith(".")])
         else:
             namespaces.append(path)
 
@@ -107,9 +103,7 @@ def generate_dsdl(
         command += f" dsdl_src{str(ns_dir).replace(str(arch_dir), '')}"
         for lookup_dir in namespaces:
             if lookup_dir != ns_dir:
-                command += (
-                    f" --lookup dsdl_src{str(lookup_dir).replace(str(arch_dir), '')}"
-                )
+                command += f" --lookup dsdl_src{str(lookup_dir).replace(str(arch_dir), '')}"
 
     self.update_state(
         state="PROGRESS",
@@ -139,9 +133,7 @@ def generate_dsdl(
         extra_includes = list(map(str, extra_includes))
 
         try:
-            compound_types = read_namespace(
-                namespace, extra_includes, allow_unregulated_fixed_port_id=False
-            )
+            compound_types = read_namespace(namespace, extra_includes, allow_unregulated_fixed_port_id=False)
         except InvalidDefinitionError as error:
             text = str(error).replace(str(arch_dir), "")
             raise RuntimeError(f"{text}") from error
@@ -149,27 +141,19 @@ def generate_dsdl(
         # Select target language and configure context
         language_options = {
             "target_endianness": target_endian,
-            "omit_float_serialization_support": (
-                "--omit-float-serialization-support" in flags
-            ),
+            "omit_float_serialization_support": ("--omit-float-serialization-support" in flags),
             "enable_serialization_asserts": ("--enable-serialization-asserts" in flags),
-            "enable_override_variable_array_capacity": (
-                "--enable-override-variable-array-capacity" in flags
-            ),
+            "enable_override_variable_array_capacity": ("--enable-override-variable-array-capacity" in flags),
         }
 
         language_context = (
             LanguageContextBuilder(include_experimental_languages=True)
             .set_target_language(target_lang)
-            .set_target_language_configuration_override(
-                Language.WKCV_LANGUAGE_OPTIONS, language_options
-            )
+            .set_target_language_configuration_override(Language.WKCV_LANGUAGE_OPTIONS, language_options)
             .create()
         )
 
-        root_namespace = build_namespace_tree(
-            compound_types, namespace, str(out_dir), language_context
-        )
+        root_namespace = build_namespace_tree(compound_types, namespace, str(out_dir), language_context)
 
         # Generate code
         generator, support_generator = create_default_generators(root_namespace)
@@ -199,10 +183,7 @@ def generate_dsdl(
             "command": command,
             "type": "htmldoc",
             "status": "Complete!",
-            "result": [
-                f"{settings.MINIO_DOCS}/{doc_url}/{str(ns).split('/')[-1]}/index.html"
-                for ns in namespaces
-            ],
+            "result": [f"{settings.MINIO_DOCS}/{doc_url}/{str(ns).split('/')[-1]}/index.html" for ns in namespaces],
         }
     else:
         # Zip result
