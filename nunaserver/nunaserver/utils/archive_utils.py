@@ -41,9 +41,7 @@ def fetch_remote_namespace(url: str, arch_dir: Path):
         raise RuntimeError("Only zip archives and Github are supported.")
 
     if res.status_code != http.HTTPStatus.OK:
-        raise RuntimeError(
-            f"Could not download the archive; HTTP error {res.status_code}"
-        )
+        raise RuntimeError(f"Could not download the archive; HTTP error {res.status_code}")
 
     fd, file_path = tempfile.mkstemp("dsdlarchive")
 
@@ -71,7 +69,4 @@ def zipdir(path, ziph):
 
 
 def allowed_file(filename):
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower() in settings.ALLOWED_EXTENSIONS
-    )
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in settings.ALLOWED_EXTENSIONS

@@ -4,6 +4,7 @@ Used to parse and validate request data on API endpoints (e.g. /upload).
 """
 import uuid
 
+
 # pylint: disable=too-few-public-methods
 class ValidationError(Exception):
     """

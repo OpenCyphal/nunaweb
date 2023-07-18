@@ -24,7 +24,9 @@ services:
       - static:/nunaserver/static
     command: [ "celery", "-A", "nunaserver.generator", "worker", "--loglevel=info" ]
   nunaserver:
-    image: uavcan/nunaweb-server:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
     environment:
       - NS_UPLOAD_FOLDER=/nunaserver/uploads
       - NS_REDIS_RESULT=redis://redis

@@ -23,13 +23,12 @@ export const languages = [
     value: 'html'
   },
   {
-    name: 'C++ (coming soon)',
-    value: 'c++',
-    disabled: true
+    name: 'C++',
+    value: 'cpp'
   },
   {
     name: 'Python (coming soon)',
-    value: 'python',
+    value: 'py',
     disabled: true
   }
 ];

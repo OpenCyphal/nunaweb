@@ -19,9 +19,7 @@ def init_logging():
 
     log_handler = logging.FileHandler(log_file)
     loggers = [logging.getLogger()]
-    loggers = loggers + [
-        logging.getLogger(name) for name in logging.root.manager.loggerDict
-    ]
+    loggers = loggers + [logging.getLogger(name) for name in logging.root.manager.loggerDict]
     for logger in loggers:
         logger.setLevel(settings.LOG_LEVEL)
         logger.addHandler(log_handler)
