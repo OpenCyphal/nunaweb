@@ -3,7 +3,7 @@ name: Production Deployment
 on:
   push:
     branches:
-      - main
+      - maintenance
 
 jobs:
   nunaweb-proxy:
