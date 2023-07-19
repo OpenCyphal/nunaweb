@@ -16,7 +16,7 @@ services:
         condition: service_started
 
   celery:
-    image: ubuntu:latest
+    image: celery:latest
     restart: always
     environment:
       - CELERY_BROKER_URL=redis://redis
