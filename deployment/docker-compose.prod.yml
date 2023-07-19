@@ -2,7 +2,7 @@ version: "3"
 
 services:
   proxy:
-    image: uavcan/nunaweb-proxy:latest
+    image: ubuntu:latest
     restart: always
     ports:
       - "80:80"
@@ -16,7 +16,7 @@ services:
         condition: service_started
 
   celery:
-    image: uavcan/nunaweb-server:latest
+    image: ubuntu:latest
     restart: always
     environment:
       - CELERY_BROKER_URL=redis://redis
@@ -32,7 +32,7 @@ services:
     command: [ "celery", "-A", "nunaserver.generator", "worker", "--loglevel=info" ]
 
   nunaserver:
-    image: uavcan/nunaweb-server:latest
+    image: ubuntu:latest
     restart: always
     environment:
       - NS_UPLOAD_FOLDER=/nunaserver/uploads
@@ -57,7 +57,7 @@ services:
         condition: service_started
 
   nunaweb:
-    image: uavcan/nunaweb-web:latest
+    image: ubuntu:latest
     environment:
       - API_URL="https://nunaweb.opencyphal.org/api/"     # Set to URL; see also /nunaweb/Dockerfile
       - HOST=nunaweb
