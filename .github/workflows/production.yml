@@ -10,137 +10,21 @@ jobs:
     name: Build nunaweb-proxy image
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Retrieve repository
-        uses: actions/checkout@v1
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: deployment
-          file: deployment/Dockerfile
-          push: true
-          tags: uavcan/nunaweb-proxy:latest
-      -
-        name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
 
   nunaweb-server:
     name: Build nunaweb-server image
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Retrieve repository
-        uses: actions/checkout@v1
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: nunaserver
-          file: nunaserver/Dockerfile
-          push: true
-          tags: uavcan/nunaweb-server:latest
-      -
-        name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
 
   nunaweb-web:
     name: Build nunaweb-web image
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Retrieve repository
-        uses: actions/checkout@v1
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      -
-        name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: nunaweb
-          file: nunaweb/Dockerfile
-          push: true
-          tags: uavcan/nunaweb-web:latest
-      -
-        name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
-
-
-  deploy:
-    name: Deploy images to production
-    runs-on: ubuntu-latest
-    needs: [ nunaweb-proxy, nunaweb-server, nunaweb-web ]
-
-    env:
-      SOURCE_FILE: "deployment/docker-compose.prod.yml"
-      TARGET_DIR: "."
-
-    steps:
-      -
-        name: Retrieve repository
-        uses: actions/checkout@v1
-      -
-        name: Copy docker-compose.yml file to host
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          source: ${{ env.SOURCE_FILE }}
-          target: ${{ env.TARGET_DIR }}
-          strip_components: 1
-      -
-        name: Pull new images from DockerHub
-        uses: JimCronqvist/action-ssh@master
-        with:
-          hosts: '${{ secrets.SSH_TARGET }}'
-          privatekey: ${{ secrets.SSH_KEY }}
-          debug: false
-          command: |
-            mv docker-compose.prod.yml docker-compose.yml
-            sed -r -i 's/(NS_MINIO_SECRET_KEY=).*$/\1${{ secrets.MINIO_PASSWORD }}/g' docker-compose.yml
-            sed -r -i 's/(MINIO_ROOT_PASSWORD=).*$/\1${{ secrets.MINIO_PASSWORD }}/g' docker-compose.yml
-            chmod 400 docker-compose.yml
-            docker-compose stop
-            docker-compose down
-            docker rmi $(docker images -a -q)
-            docker-compose up -d
+      - name: Checkout repository
+        uses: actions/checkout@v3
