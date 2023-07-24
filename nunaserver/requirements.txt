@@ -15,5 +15,5 @@ redis==4.6.0
 nunavut~=2.1.1
 
 # MinIO
-minio==7.0.3
+minio==7.1.1
 flask-minio==0.1.2
