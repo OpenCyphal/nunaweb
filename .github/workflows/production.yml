@@ -33,7 +33,7 @@ jobs:
   deploy:
     name: Deploy images to production
     runs-on: ubuntu-latest
-    needs: [ nunaweb-proxy, nunaweb-server, nunaweb-web ]
+    needs: [nunaweb-proxy, nunaweb-server, nunaweb-web]
 
     env:
       SOURCE_FILE: "deployment/docker-compose.prod.yml"
@@ -66,3 +66,7 @@ jobs:
             docker-compose down
             docker rmi $(docker images -a -q)
             docker-compose up -d
+
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2
