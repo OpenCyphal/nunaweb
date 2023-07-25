@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Retrieve repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
       - name: Copy docker-compose.yml file to host
         uses: appleboy/scp-action@master
         with:
