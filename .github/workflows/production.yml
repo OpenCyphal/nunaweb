@@ -6,30 +6,6 @@ on:
       - maintenance
 
 jobs:
-  nunaweb-proxy:
-    name: Build nunaweb-proxy image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-
-  nunaweb-server:
-    name: Build nunaweb-server image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-
-  nunaweb-web:
-    name: Build nunaweb-web image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-
   deploy:
     name: Deploy images to production
     runs-on: ubuntu-latest
@@ -64,9 +40,5 @@ jobs:
             chmod 400 docker-compose.yml
             docker-compose stop
             docker-compose down
-            docker rmi $(docker images -a -q)
+            docker rmi -f $(docker images -a -q)
             docker-compose up -d
-
-      - name: Dump docker logs on failure
-        if: failure()
-        uses: jwalton/gh-docker-logs@v2
