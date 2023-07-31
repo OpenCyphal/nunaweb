@@ -16,7 +16,7 @@ services:
         condition: service_started
 
   celery:
-    image: uavcan/nunaweb-server:latest
+    image: celery:latest
     restart: always
     environment:
       - CELERY_BROKER_URL=redis://redis
@@ -29,10 +29,11 @@ services:
       - NS_REDIS_RESULT=redis://redis
       - NS_REDIS_BROKER=redis://redis:6379/0
       - NS_LOG_LEVEL=40
+      - PYTHONPATH=~/nunaserver/nunaserver
     command: [ "celery", "-A", "nunaserver.generator", "worker", "--loglevel=info" ]
 
   nunaserver:
-    image: uavcan/nunaweb-server:latest
+    image: ubuntu:latest
     restart: always
     environment:
       - NS_UPLOAD_FOLDER=/nunaserver/uploads
@@ -57,7 +58,7 @@ services:
         condition: service_started
 
   nunaweb:
-    image: uavcan/nunaweb-server:latest
+    image: ubuntu:latest
     environment:
       - API_URL="https://nunaweb.opencyphal.org/api/"     # Set to URL; see also /nunaweb/Dockerfile
       - HOST=nunaweb
@@ -90,4 +91,3 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-
