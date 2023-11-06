@@ -7,12 +7,12 @@ import os
 import tempfile
 import zipfile
 import minio
-import typing
 from typing import List
 from pathlib import Path
-from pydsdl import read_namespace, InvalidDefinitionError
+from pydsdl import read_namespace
+from pydsdl._error import InvalidDefinitionError
 from nunavut import build_namespace_tree
-from nunavut import DSDLCodeGenerator, SupportGenerator, AbstractGenerator, Namespace
+from nunavut._generators import create_default_generators
 from nunaserver import settings
 from nunaserver.tasks import celery
 from nunaserver.logging import init_logging
@@ -29,8 +29,6 @@ from nunavut.lang import (
 
 init_logging()
 
-def create_default_generators(ns: Namespace, **kwargs: typing.Any) -> tuple[AbstractGenerator, AbstractGenerator]:
-    return DSDLCodeGenerator(ns, **kwargs), SupportGenerator(ns, **kwargs)
 
 # pylint: disable=too-many-locals,too-many-arguments
 @celery.task(bind=True)
