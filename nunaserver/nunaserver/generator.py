@@ -10,8 +10,7 @@ import minio
 import typing
 from typing import List
 from pathlib import Path
-from pydsdl import read_namespace
-from pydsdl._error import InvalidDefinitionError
+from pydsdl import read_namespace, InvalidDefinitionError
 from nunavut import build_namespace_tree
 from nunavut import DSDLCodeGenerator, SupportGenerator, AbstractGenerator, Namespace
 from nunaserver import settings
