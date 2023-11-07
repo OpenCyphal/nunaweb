@@ -64,12 +64,7 @@ def upload():
 
     # Kick off Celery task to generate DSDL
     task = generate_dsdl.delay(
-        build_uuid,
-        form.archive_urls,
-        form.target_lang,
-        form.target_endian,
-        form.flags,
-        form.doc_url
+        build_uuid, form.archive_urls, form.target_lang, form.target_endian, form.flags, form.doc_url
     )
 
     return (
