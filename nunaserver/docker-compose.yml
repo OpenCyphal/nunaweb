@@ -35,7 +35,7 @@ services:
       - FLASK_ENV=development
     command: "bash -c 'cd /nunaserver && pip3 install -r requirements.txt && python3 -m nunaserver'"
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio
     volumes:
       - ./data:/data
     network_mode: host
@@ -43,7 +43,7 @@ services:
       # CHANGE THIS
       MINIO_ROOT_USER: nunaweb
       MINIO_ROOT_PASSWORD: supersecurepassword
-    command: server /data
+    command: server /data --console-address ":9090"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s

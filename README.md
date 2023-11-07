@@ -1,7 +1,7 @@
 # nunaweb
 A web UI for generating code for DSDL via Nunavut.
 
-![Nunaweb screenshot](/screenshots/2021-01-27T10\:34\:38_ushot_screenshot.png)
+![Nunaweb screenshot](/screenshots/2021-01-27_ushot_screenshot.png)
 
 Nunaweb makes it easy to generate code for DSDL namespaces from the web.
 Simply upload your namespaces as .zip archives (or provide a remote link)
