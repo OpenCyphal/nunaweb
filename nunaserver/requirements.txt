@@ -16,5 +16,5 @@ nunavut==2.3.1
 pydsdl==1.20.1
 
 # MinIO
-minio==7.0.3
+minio==7.1.17
 flask-minio==0.1.2
