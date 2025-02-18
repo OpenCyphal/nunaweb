@@ -122,7 +122,8 @@ jobs:
         name: Copy docker-compose.yml file to host
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
+          host: nunaweb.opencyphal.org
+          port: 22005
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           source: ${{ env.SOURCE_FILE }}
