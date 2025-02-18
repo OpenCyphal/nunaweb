@@ -133,7 +133,7 @@ jobs:
         name: Pull new images from DockerHub
         uses: JimCronqvist/action-ssh@master
         with:
-          hosts: '${{ secrets.SSH_TARGET }}'
+          hosts: ${{ secrets.SSH_USERNAME }}@nunaweb.opencyphal.org:22005
           privatekey: ${{ secrets.SSH_KEY }}
           debug: false
           command: |
